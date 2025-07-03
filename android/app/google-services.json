@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "357972744272",
+    "project_id": "letmegoo-2aab1",
+    "storage_bucket": "letmegoo-2aab1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:357972744272:android:586f14a3a8d2e93ee19955",
+        "android_client_info": {
+          "package_name": "com.example.letmegoo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCcglrv82GSKICJ7efUsy4tVPTbq2wN0UY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
