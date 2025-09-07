@@ -14,7 +14,6 @@ import 'package:letmegoo/services/apple_auth_service.dart';
 import 'package:letmegoo/services/auth_service.dart';
 import 'package:letmegoo/services/device_service.dart';
 import 'package:letmegoo/models/login_method.dart';
-import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'dart:io' show Platform;
 
 class LoginPage extends StatefulWidget {

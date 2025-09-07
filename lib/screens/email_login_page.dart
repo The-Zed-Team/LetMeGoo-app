@@ -351,11 +351,11 @@ class _EmailLoginPageState extends State<EmailLoginPage> {
     setState(() => _isLoading = true);
 
     try {
-      UserCredential userCredential = await FirebaseAuth.instance
-          .signInWithEmailAndPassword(
-            email: _emailController.text.trim(),
-            password: _passwordController.text.trim(),
-          );
+      // UserCredential userCredential = await FirebaseAuth.instance
+      //     .signInWithEmailAndPassword(
+      //       email: _emailController.text.trim(),
+      //       password: _passwordController.text.trim(),
+      //     );
 
       // For existing users (login), we don't require email verification
       // Only new signups require verification
