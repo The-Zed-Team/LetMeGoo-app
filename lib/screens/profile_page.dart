@@ -11,6 +11,7 @@ import 'package:letmegoo/providers/app_providers.dart';
 import 'package:letmegoo/providers/app_state_provider.dart';
 import 'package:letmegoo/screens/terms_and_condition_page.dart';
 import 'package:letmegoo/services/auth_service.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../widgets/profileoption.dart';
 import '../../widgets/usertile.dart';
 import '../../widgets/custom_bottom_nav.dart';
@@ -307,6 +308,37 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                             ),
                             child: Column(
                               children: [
+                                Profileoption(
+                                  icon: Icons.chat,
+                                  title: "Contact Us",
+                                  trailing: Icon(
+                                    Icons.chevron_right,
+                                    color: AppColors.textSecondary,
+                                    size:
+                                        screenWidth *
+                                        (isLargeScreen
+                                            ? 0.025
+                                            : isTablet
+                                            ? 0.035
+                                            : 0.06),
+                                  ),
+                                  onTap: () async {
+                                    final Uri whatsappUri = Uri.parse(
+                                      "https://wa.me/918281035452?text=Hello",
+                                    );
+
+                                    if (await canLaunchUrl(whatsappUri)) {
+                                      await launchUrl(
+                                        whatsappUri,
+                                        mode: LaunchMode.externalApplication,
+                                      );
+                                    } else {
+                                      throw "Could not launch WhatsApp";
+                                    }
+                                  },
+                                ),
+
+                                CustomDivider(screenWidth: screenWidth),
                                 Profileoption(
                                   icon: Icons.shield_outlined,
                                   title: "Privacy Policy",
