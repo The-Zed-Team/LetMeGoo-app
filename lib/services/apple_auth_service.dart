@@ -11,7 +11,7 @@ class AppleAuthService {
   static final FirebaseAuth _auth = FirebaseAuth.instance;
 
   // Key to store Apple user IDs in Firebase user metadata
-  static const String _appleUserIdKey = 'appleUserId';
+  //static const String _appleUserIdKey = 'appleUserId';
 
   /// Generates a cryptographically secure random nonce or password
   static String generateSecureString([int length = 32]) {

@@ -10,6 +10,7 @@ import 'package:letmegoo/models/user_model.dart';
 import 'package:letmegoo/screens/login_page.dart';
 import 'package:letmegoo/screens/user_detail_reg_page.dart';
 import 'package:letmegoo/widgets/main_app.dart';
+import 'package:letmegoo/services/analytics_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -33,6 +34,7 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void initState() {
     super.initState();
+    AnalyticsService.logScreenView('splash_screen');
     _initializeAnimations();
     _startSplashSequence();
   }

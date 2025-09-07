@@ -5,6 +5,7 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:letmegoo/services/analytics_service.dart'; // 🔥 ADD THIS IMPORT
 
 class DeviceService {
   static const String baseUrl = 'https://api.letmegoo.com/api';
@@ -58,14 +59,35 @@ class DeviceService {
       print('Response body: ${response.body}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
+        // 🔥 ADD THIS - Track successful device registration
+        await AnalyticsService.logEvent(
+          'device_registered',
+          parameters: {
+            'platform': Platform.isAndroid ? 'android' : 'ios',
+            'push_enabled': pushStatus,
+            'status_code': response.statusCode,
+          },
+        );
+
         return json.decode(response.body) as Map<String, dynamic>;
       } else {
+        // 🔥 ADD THIS - Track failed device registration
+        await AnalyticsService.logEvent(
+          'device_registration_failed',
+          parameters: {
+            'status_code': response.statusCode,
+            'platform': Platform.isAndroid ? 'android' : 'ios',
+          },
+        );
+
         throw Exception(
           'Device registration failed: ${response.statusCode} - ${response.body}',
         );
       }
     } catch (e) {
       print('Device registration error: $e');
+      // 🔥 ADD THIS - Track device registration errors
+      AnalyticsService.recordError(e, StackTrace.current);
       rethrow;
     }
   }
@@ -87,6 +109,8 @@ class DeviceService {
       }
     } catch (e) {
       print('Error getting device info: $e');
+      // 🔥 ADD THIS - Track device info errors
+      AnalyticsService.recordError(e, StackTrace.current);
     }
 
     return {'model': 'Unknown', 'version': 'Unknown'};
@@ -102,9 +126,21 @@ class DeviceService {
 
       final token = await messaging.getToken();
       print('FCM Token: $token');
+
+      // 🔥 ADD THIS - Track FCM token retrieval
+      await AnalyticsService.logEvent(
+        'fcm_token_retrieved',
+        parameters: {
+          'success': token != null,
+          'platform': Platform.isAndroid ? 'android' : 'ios',
+        },
+      );
+
       return token;
     } catch (e) {
       print('Error getting FCM token: $e');
+      // 🔥 ADD THIS - Track FCM token errors
+      AnalyticsService.recordError(e, StackTrace.current);
       return null;
     }
   }
@@ -115,17 +151,33 @@ class DeviceService {
       final FirebaseMessaging messaging = FirebaseMessaging.instance;
       final settings = await messaging.getNotificationSettings();
 
+      String status;
       switch (settings.authorizationStatus) {
         case AuthorizationStatus.authorized:
         case AuthorizationStatus.provisional:
-          return 'ENABLED';
+          status = 'ENABLED';
+          break;
         case AuthorizationStatus.denied:
-          return 'DISABLED';
+          status = 'DISABLED';
+          break;
         default:
-          return 'UNKNOWN';
+          status = 'UNKNOWN';
       }
+
+      // 🔥 ADD THIS - Track push notification permission status
+      await AnalyticsService.logEvent(
+        'push_permission_check',
+        parameters: {
+          'status': status,
+          'platform': Platform.isAndroid ? 'android' : 'ios',
+        },
+      );
+
+      return status;
     } catch (e) {
       print('Error checking push notification status: $e');
+      // 🔥 ADD THIS - Track permission check errors
+      AnalyticsService.recordError(e, StackTrace.current);
       return 'UNKNOWN';
     }
   }
@@ -162,8 +214,30 @@ class DeviceService {
           .timeout(timeoutDuration);
 
       print('Device token update response: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        // 🔥 ADD THIS - Track successful token update
+        await AnalyticsService.logEvent(
+          'device_token_updated',
+          parameters: {
+            'success': true,
+            'platform': Platform.isAndroid ? 'android' : 'ios',
+          },
+        );
+      } else {
+        // 🔥 ADD THIS - Track failed token update
+        await AnalyticsService.logEvent(
+          'device_token_update_failed',
+          parameters: {
+            'status_code': response.statusCode,
+            'platform': Platform.isAndroid ? 'android' : 'ios',
+          },
+        );
+      }
     } catch (e) {
       print('Error updating device token: $e');
+      // 🔥 ADD THIS - Track token update errors
+      AnalyticsService.recordError(e, StackTrace.current);
     }
   }
 
@@ -187,8 +261,30 @@ class DeviceService {
           .timeout(timeoutDuration);
 
       print('Device unregister response: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        // 🔥 ADD THIS - Track successful device unregistration
+        await AnalyticsService.logEvent(
+          'device_unregistered',
+          parameters: {
+            'success': true,
+            'platform': Platform.isAndroid ? 'android' : 'ios',
+          },
+        );
+      } else {
+        // 🔥 ADD THIS - Track failed device unregistration
+        await AnalyticsService.logEvent(
+          'device_unregister_failed',
+          parameters: {
+            'status_code': response.statusCode,
+            'platform': Platform.isAndroid ? 'android' : 'ios',
+          },
+        );
+      }
     } catch (e) {
       print('Error unregistering device: $e');
+      // 🔥 ADD THIS - Track unregistration errors
+      AnalyticsService.recordError(e, StackTrace.current);
     }
   }
 
@@ -229,17 +325,43 @@ class DeviceService {
 
       if (response.statusCode == 200) {
         // Device is registered
+        // 🔥 ADD THIS - Track device found
+        await AnalyticsService.logEvent(
+          'device_check_found',
+          parameters: {'platform': Platform.isAndroid ? 'android' : 'ios'},
+        );
+
         return json.decode(response.body) as Map<String, dynamic>;
       } else if (response.statusCode == 404) {
         // Device not found/not registered
+        // 🔥 ADD THIS - Track device not found (this was the 404 error you saw)
+        await AnalyticsService.logEvent(
+          'device_check_not_found',
+          parameters: {
+            'platform': Platform.isAndroid ? 'android' : 'ios',
+            'status_code': 404,
+          },
+        );
+
         return null;
       } else {
+        // 🔥 ADD THIS - Track other check failures
+        await AnalyticsService.logEvent(
+          'device_check_failed',
+          parameters: {
+            'status_code': response.statusCode,
+            'platform': Platform.isAndroid ? 'android' : 'ios',
+          },
+        );
+
         throw Exception(
           'Device check failed: ${response.statusCode} - ${response.body}',
         );
       }
     } catch (e) {
       print('Device check error: $e');
+      // 🔥 ADD THIS - Track device check errors
+      AnalyticsService.recordError(e, StackTrace.current);
       // Return null if check fails - we'll treat it as not registered
       return null;
     }
@@ -248,11 +370,27 @@ class DeviceService {
   /// Check if device is registered and register if not
   static Future<bool> ensureDeviceRegistered() async {
     try {
+      // 🔥 ADD THIS - Track device registration flow start
+      await AnalyticsService.logEvent(
+        'device_registration_flow_started',
+        parameters: {'platform': Platform.isAndroid ? 'android' : 'ios'},
+      );
+
       // First check if device is already registered
       final deviceData = await checkDeviceRegistration();
 
       if (deviceData != null) {
         print('Device already registered: ${deviceData['id']}');
+
+        // 🔥 ADD THIS - Track device already registered
+        await AnalyticsService.logEvent(
+          'device_already_registered',
+          parameters: {
+            'platform': Platform.isAndroid ? 'android' : 'ios',
+            'has_device_id': deviceData['id'] != null,
+          },
+        );
+
         return true;
       }
 
@@ -265,12 +403,43 @@ class DeviceService {
         print(
           'Device registered successfully: ${registrationResult['id'] ?? 'unknown'}',
         );
+
+        // 🔥 ADD THIS - Track successful new registration
+        await AnalyticsService.logEvent(
+          'device_newly_registered',
+          parameters: {
+            'platform': Platform.isAndroid ? 'android' : 'ios',
+            'device_id':
+                (registrationResult['id'] as Object?)?.toString() ?? 'unknown',
+          },
+        );
+
         return true;
       }
+
+      // 🔥 ADD THIS - Track registration failure
+      await AnalyticsService.logEvent(
+        'device_registration_flow_failed',
+        parameters: {
+          'platform': Platform.isAndroid ? 'android' : 'ios',
+          'reason': 'registration_returned_null',
+        },
+      );
 
       return false;
     } catch (e) {
       print('Error ensuring device registration: $e');
+      // 🔥 ADD THIS - Track overall registration flow errors
+      AnalyticsService.recordError(e, StackTrace.current);
+
+      await AnalyticsService.logEvent(
+        'device_registration_flow_error',
+        parameters: {
+          'platform': Platform.isAndroid ? 'android' : 'ios',
+          'error_type': e.runtimeType.toString(),
+        },
+      );
+
       return false;
     }
   }

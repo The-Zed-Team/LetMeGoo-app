@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:letmegoo/constants/app_theme.dart';
 import 'package:letmegoo/models/login_method.dart';
 import 'package:letmegoo/screens/user_detail_reg_page.dart';
+import 'package:letmegoo/services/analytics_service.dart';
 
 class WelcomePage extends StatefulWidget {
   const WelcomePage({super.key});
@@ -28,7 +29,7 @@ class _WelcomePageState extends State<WelcomePage>
   @override
   void initState() {
     super.initState();
-
+    AnalyticsService.logScreenView('welcome_page');
     // Single smooth controller for lock animation
     _lockController = AnimationController(
       vsync: this,

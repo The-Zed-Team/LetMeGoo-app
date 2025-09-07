@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:letmegoo/screens/create_report_page.dart';
 import 'package:letmegoo/screens/home_page.dart';
 import 'package:letmegoo/screens/profile_page.dart';
+import 'package:letmegoo/services/analytics_service.dart';
 
 class MainApp extends StatefulWidget {
   const MainApp({super.key});
@@ -12,6 +13,11 @@ class MainApp extends StatefulWidget {
 
 class _MainAppState extends State<MainApp> {
   int _currentIndex = 0;
+  @override
+  void initState() {
+    super.initState();
+    AnalyticsService.logScreenView('main_app');
+  }
 
   void _onNavigate(int index) {
     setState(() {

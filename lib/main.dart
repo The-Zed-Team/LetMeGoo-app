@@ -1,6 +1,7 @@
-// lib/main.dart - Updated with navigator key for notifications
-
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -19,13 +20,34 @@ void main() async {
     );
     print("Firebase initialized successfully");
 
+    // Initialize Crashlytics
+    if (!kDebugMode) {
+      // Only enable Crashlytics in release mode
+      FlutterError.onError = (errorDetails) {
+        FirebaseCrashlytics.instance.recordFlutterFatalError(errorDetails);
+      };
+
+      // Pass all uncaught asynchronous errors to Crashlytics
+      PlatformDispatcher.instance.onError = (error, stack) {
+        FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+        return true;
+      };
+    }
+
     // Initialize notifications in background - don't await
     NotificationService.initialize().catchError((e) {
       print("Notification initialization error: $e");
+      // Log to Crashlytics
+      if (!kDebugMode) {
+        FirebaseCrashlytics.instance.recordError(e, null);
+      }
     });
   } catch (e) {
     print("Firebase initialization error: $e");
-    // You might want to show an error screen here
+    // Log to Crashlytics
+    if (!kDebugMode) {
+      FirebaseCrashlytics.instance.recordError(e, null);
+    }
   }
 
   runApp(const ProviderScope(child: MyApp()));
@@ -45,7 +67,11 @@ class MyApp extends StatelessWidget {
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      navigatorKey: navigatorKey, // Add this line
+      navigatorKey: navigatorKey,
+      // Add analytics navigation observer
+      // navigatorObservers: [
+      //   FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance),
+      // ],
       home: const SplashScreen(),
       routes: {
         '/splash': (context) => const SplashScreen(),

@@ -13,6 +13,7 @@ import 'package:letmegoo/services/google_auth_service.dart';
 import 'package:letmegoo/services/apple_auth_service.dart';
 import 'package:letmegoo/services/auth_service.dart';
 import 'package:letmegoo/services/device_service.dart';
+import 'package:letmegoo/services/analytics_service.dart'; // 🔥 ADD THIS IMPORT
 import 'package:letmegoo/models/login_method.dart';
 import 'dart:io' show Platform;
 
@@ -26,6 +27,13 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   bool _isGoogleLoading = false;
   bool _isAppleLoading = false;
+
+  // 🔥 ADD THIS METHOD - Track screen view when page loads
+  @override
+  void initState() {
+    super.initState();
+    AnalyticsService.logScreenView('login_page');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -77,27 +85,9 @@ class _LoginPageState extends State<LoginPage> {
                             isLargeScreen,
                           ),
 
-                          // // Feature List - Compact for small screens
-                          // _buildFeaturesList(
-                          //   screenWidth,
-                          //   isTablet,
-                          //   availableHeight < 700,
-                          // ),
-
                           // Login Section
                           Column(
                             children: [
-                              // Decorative line
-                              // Container(
-                              //   width: screenWidth * 0.4,
-                              //   height: 1,
-                              //   decoration: BoxDecoration(
-                              //     border: Border.all(
-                              //       color: AppColors.primary,
-                              //       width: 1,
-                              //     ),
-                              //   ),
-                              // ),
                               SizedBox(height: sectionSpacing),
 
                               // Login Buttons
@@ -217,7 +207,14 @@ class _LoginPageState extends State<LoginPage> {
               width: double.infinity,
               height: buttonHeight,
               child: ElevatedButton(
-                onPressed: _navigateToEmailRegistration,
+                onPressed: () async {
+                  // 🔥 ADD THIS - Track button click
+                  await AnalyticsService.logButtonClick(
+                    'continue_with_email',
+                    'login_page',
+                  );
+                  _navigateToEmailRegistration();
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: AppColors.white,
@@ -244,7 +241,17 @@ class _LoginPageState extends State<LoginPage> {
               width: double.infinity,
               height: buttonHeight,
               child: OutlinedButton(
-                onPressed: _isGoogleLoading ? null : _handleGoogleSignIn,
+                onPressed:
+                    _isGoogleLoading
+                        ? null
+                        : () async {
+                          // 🔥 ADD THIS - Track button click
+                          await AnalyticsService.logButtonClick(
+                            'continue_with_google',
+                            'login_page',
+                          );
+                          _handleGoogleSignIn();
+                        },
                 style: OutlinedButton.styleFrom(
                   backgroundColor: AppColors.white,
                   side: BorderSide(color: AppColors.textSecondary, width: 0.5),
@@ -287,17 +294,23 @@ class _LoginPageState extends State<LoginPage> {
             ),
 
             // Apple Sign-In Button (only on iOS)
-            // Replace the existing Apple Sign-In button with this custom one
-            // that matches the Google Sign-In button style
-
-            // Apple Sign-In Button (only on iOS)
             if (showAppleSignIn) ...[
               SizedBox(height: spacing),
               SizedBox(
                 width: double.infinity,
                 height: buttonHeight,
                 child: OutlinedButton(
-                  onPressed: _isAppleLoading ? null : _handleAppleSignIn,
+                  onPressed:
+                      _isAppleLoading
+                          ? null
+                          : () async {
+                            // 🔥 ADD THIS - Track button click
+                            await AnalyticsService.logButtonClick(
+                              'continue_with_apple',
+                              'login_page',
+                            );
+                            _handleAppleSignIn();
+                          },
                   style: OutlinedButton.styleFrom(
                     backgroundColor: AppColors.white,
                     side: BorderSide(
@@ -324,8 +337,7 @@ class _LoginPageState extends State<LoginPage> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Image.asset(
-                                AppImages
-                                    .appleLogo, // You'll need to add this to your assets
+                                AppImages.appleLogo,
                                 width: isCompact ? 20 : 24,
                                 height: isCompact ? 20 : 24,
                                 color: AppColors.textPrimary,
@@ -382,7 +394,12 @@ class _LoginPageState extends State<LoginPage> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         TextButton(
-          onPressed: () {
+          onPressed: () async {
+            // 🔥 ADD THIS - Track button click
+            await AnalyticsService.logButtonClick(
+              'privacy_policy',
+              'login_page',
+            );
             Navigator.push(
               context,
               MaterialPageRoute(
@@ -400,7 +417,12 @@ class _LoginPageState extends State<LoginPage> {
         ),
         const SizedBox(width: 20),
         TextButton(
-          onPressed: () {
+          onPressed: () async {
+            // 🔥 ADD THIS - Track button click
+            await AnalyticsService.logButtonClick(
+              'terms_of_service',
+              'login_page',
+            );
             Navigator.push(
               context,
               MaterialPageRoute(
@@ -465,6 +487,10 @@ class _LoginPageState extends State<LoginPage> {
         throw Exception('Failed to get user information');
       }
 
+      // 🔥 ADD THIS - Track successful login
+      await AnalyticsService.logLogin('google');
+      await AnalyticsService.setUserId(user.uid);
+
       _showSnackBar('Google sign-in successful!', isError: false);
       await _registerDeviceAfterLogin();
 
@@ -484,11 +510,17 @@ class _LoginPageState extends State<LoginPage> {
           _navigateToWelcome();
         }
       } catch (e) {
+        // 🔥 ADD THIS - Track auth errors
+        AnalyticsService.recordError(e, null);
         _navigateToWelcome();
       }
     } on FirebaseAuthException catch (e) {
+      // 🔥 ADD THIS - Track Firebase auth errors
+      AnalyticsService.recordError(e, null);
       _handleFirebaseError(e);
     } catch (e) {
+      // 🔥 ADD THIS - Track general errors
+      AnalyticsService.recordError(e, null);
       _showSnackBar('Sign-in failed: ${e.toString()}', isError: true);
     } finally {
       setState(() {
@@ -518,6 +550,10 @@ class _LoginPageState extends State<LoginPage> {
         throw Exception('Failed to get user information');
       }
 
+      // 🔥 ADD THIS - Track successful login
+      await AnalyticsService.logLogin('apple');
+      await AnalyticsService.setUserId(user.uid);
+
       _showSnackBar('Apple sign-in successful!', isError: false);
       await _registerDeviceAfterLogin();
 
@@ -537,11 +573,17 @@ class _LoginPageState extends State<LoginPage> {
           _navigateToWelcome();
         }
       } catch (e) {
+        // 🔥 ADD THIS - Track auth errors
+        AnalyticsService.recordError(e, null);
         _navigateToWelcome();
       }
     } on FirebaseAuthException catch (e) {
+      // 🔥 ADD THIS - Track Firebase auth errors
+      AnalyticsService.recordError(e, null);
       _handleFirebaseError(e);
     } catch (e) {
+      // 🔥 ADD THIS - Track general errors
+      AnalyticsService.recordError(e, null);
       _showSnackBar('Sign-in failed: ${e.toString()}', isError: true);
     } finally {
       setState(() {
@@ -585,6 +627,8 @@ class _LoginPageState extends State<LoginPage> {
       await DeviceService.registerDevice();
       print('Device registered successfully after login');
     } catch (e) {
+      // 🔥 ADD THIS - Track device registration errors
+      AnalyticsService.recordError(e, null);
       print('Device registration failed after login: $e');
     }
   }
