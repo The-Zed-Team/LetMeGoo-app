@@ -36,9 +36,7 @@ class _HomePageState extends ConsumerState<HomePage>
       final cache = ref.read(reportsCacheProvider.notifier);
       final reportsNotifier = ref.read(reportsProvider.notifier);
       final currentState = ref.read(reportsProvider);
-      print('🧪 DEBUG: Testing direct API call');
-      final allReports = await AuthService.getAllReportsDebug();
-      print('🧪 DEBUG: Got ${allReports.length} total reports');
+
       print('🔍 Loading reports check:');
       print('  - Cache valid: ${cache.isCacheValid}');
       print('  - Total reports: ${currentState.totalReports}');
@@ -164,7 +162,7 @@ class _HomePageState extends ConsumerState<HomePage>
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: Colors.white, // Changed to white
+        backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: AppColors.textPrimary),
@@ -174,7 +172,6 @@ class _HomePageState extends ConsumerState<HomePage>
         ),
         title: Text('Reports', style: AppFonts.semiBold20()),
         centerTitle: true,
-        // Removed all actions (refresh and debug buttons)
       ),
       body: MediaQuery.removePadding(
         context: context,
@@ -182,7 +179,6 @@ class _HomePageState extends ConsumerState<HomePage>
         child: SafeArea(
           child: Column(
             children: [
-              // Error banner
               Consumer(
                 builder: (context, ref, child) {
                   final reportsState = ref.watch(reportsProvider);
@@ -234,8 +230,6 @@ class _HomePageState extends ConsumerState<HomePage>
                   return const SizedBox.shrink();
                 },
               ),
-
-              // Main Content
               Expanded(
                 child: Consumer(
                   builder: (context, ref, child) {
@@ -246,7 +240,31 @@ class _HomePageState extends ConsumerState<HomePage>
                     print('  - Has no reports: ${reportsState.hasNoReports}');
                     print('  - Error: ${reportsState.error}');
 
-                    // Debug the formatted providers
+                    if (reportsState.isLoading) {
+                      print('🔄 Showing loading widget');
+                      return _LoadingWidget(screenHeight: screenHeight);
+                    }
+
+                    if (reportsState.error != null &&
+                        reportsState.hasNoReports) {
+                      print('❌ Showing error widget');
+                      return _ErrorWidget(
+                        screenHeight: screenHeight,
+                        errorMessage: reportsState.error!,
+                        onRetry: _retryLoadingReports,
+                      );
+                    }
+
+                    if (reportsState.hasNoReports) {
+                      print('📭 Showing empty widget');
+                      return _EmptyWidget(
+                        screenHeight: screenHeight,
+                        screenWidth: screenWidth,
+                        onRefresh: _onRefresh,
+                      );
+                    }
+
+                    print('📊 Showing reports content');
                     late List<Map<String, dynamic>> liveByUserFormatted;
                     late List<Map<String, dynamic>> liveAgainstUserFormatted;
                     late List<Map<String, dynamic>> solvedByUserFormatted;
@@ -315,56 +333,17 @@ class _HomePageState extends ConsumerState<HomePage>
                             maxWidth: isLargeScreen ? 900 : double.infinity,
                             minHeight: screenHeight * 0.7,
                           ),
-                          child: Builder(
-                            builder: (context) {
-                              // Show loading state
-                              if (reportsState.isLoading &&
-                                  reportsState.hasNoReports) {
-                                print('🔄 Showing loading widget');
-                                return _LoadingWidget(
-                                  screenHeight: screenHeight,
-                                );
-                              }
-
-                              // Show error state
-                              if (reportsState.error != null &&
-                                  reportsState.hasNoReports &&
-                                  !reportsState.isLoading) {
-                                print('❌ Showing error widget');
-                                return _ErrorWidget(
-                                  screenHeight: screenHeight,
-                                  errorMessage: reportsState.error!,
-                                  onRetry: _retryLoadingReports,
-                                );
-                              }
-
-                              // Show empty state
-                              if (reportsState.hasNoReports &&
-                                  !reportsState.isLoading) {
-                                print('📭 Showing empty widget');
-                                return _EmptyWidget(
-                                  screenHeight: screenHeight,
-                                  screenWidth: screenWidth,
-                                  onRefresh: _onRefresh,
-                                );
-                              }
-
-                              // Show content
-                              print('📊 Showing reports content');
-                              return _ReportsContent(
-                                screenWidth: screenWidth,
-                                screenHeight: screenHeight,
-                                isTablet: isTablet,
-                                isLargeScreen: isLargeScreen,
-                                liveByUserFormatted: liveByUserFormatted,
-                                liveAgainstUserFormatted:
-                                    liveAgainstUserFormatted,
-                                solvedByUserFormatted: solvedByUserFormatted,
-                                solvedAgainstUserFormatted:
-                                    solvedAgainstUserFormatted,
-                                isRefreshing: _isRefreshing,
-                              );
-                            },
+                          child: _ReportsContent(
+                            screenWidth: screenWidth,
+                            screenHeight: screenHeight,
+                            isTablet: isTablet,
+                            isLargeScreen: isLargeScreen,
+                            liveByUserFormatted: liveByUserFormatted,
+                            liveAgainstUserFormatted: liveAgainstUserFormatted,
+                            solvedByUserFormatted: solvedByUserFormatted,
+                            solvedAgainstUserFormatted:
+                                solvedAgainstUserFormatted,
+                            isRefreshing: _isRefreshing,
                           ),
                         ),
                       ),
@@ -376,12 +355,9 @@ class _HomePageState extends ConsumerState<HomePage>
           ),
         ),
       ),
-      // Removed floatingActionButton completely
     );
   }
 }
-
-// Keep all the other widget classes the same but add debugging to _ReportsContent
 
 class _ReportsContent extends StatelessWidget {
   final double screenWidth;
@@ -415,39 +391,9 @@ class _ReportsContent extends StatelessWidget {
     print('  - Solved against user: ${solvedAgainstUserFormatted.length}');
     print('  - Is refreshing: $isRefreshing');
 
-    // If all lists are empty, show debug info
-    if (liveByUserFormatted.isEmpty &&
-        liveAgainstUserFormatted.isEmpty &&
-        solvedByUserFormatted.isEmpty &&
-        solvedAgainstUserFormatted.isEmpty) {
-      return Container(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          children: [
-            const Icon(Icons.info, size: 48, color: Colors.blue),
-            const SizedBox(height: 16),
-            const Text(
-              'Debug: All report lists are empty',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'This means either:\n'
-              '1. No reports were fetched from API\n'
-              '2. Error in data formatting\n'
-              '3. Reports exist but not being categorized properly',
-              style: TextStyle(color: Colors.grey[600]),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      );
-    }
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Refresh indicator
         if (isRefreshing) ...[
           Container(
             width: double.infinity,
@@ -474,8 +420,6 @@ class _ReportsContent extends StatelessWidget {
             ),
           ),
         ],
-
-        // Report sections
         if (liveByUserFormatted.isNotEmpty) ...[
           buildReportSection(
             context: context,
@@ -489,7 +433,6 @@ class _ReportsContent extends StatelessWidget {
           buildDivider(screenWidth),
           SizedBox(height: screenHeight * 0.02),
         ],
-
         if (liveAgainstUserFormatted.isNotEmpty) ...[
           buildReportSection(
             context: context,
@@ -504,7 +447,6 @@ class _ReportsContent extends StatelessWidget {
           buildDivider(screenWidth),
           SizedBox(height: screenHeight * 0.02),
         ],
-
         if (solvedByUserFormatted.isNotEmpty) ...[
           buildReportSection(
             context: context,
@@ -518,7 +460,6 @@ class _ReportsContent extends StatelessWidget {
           buildDivider(screenWidth),
           SizedBox(height: screenHeight * 0.02),
         ],
-
         if (solvedAgainstUserFormatted.isNotEmpty) ...[
           buildReportSection(
             context: context,
@@ -530,14 +471,11 @@ class _ReportsContent extends StatelessWidget {
             isLargeScreen: isLargeScreen,
           ),
         ],
-
         SizedBox(height: screenHeight * 0.02),
       ],
     );
   }
 }
-
-// Add these widget classes to your home_page.dart file
 
 class _LoadingWidget extends StatelessWidget {
   final double screenHeight;

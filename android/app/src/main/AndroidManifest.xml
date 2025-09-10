@@ -12,7 +12,9 @@
         android:label="LetMeGoo"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon">
-        
+          <meta-data
+        android:name="com.google.android.gms.ads.AD_MANAGER_APP"
+        android:value="false" />
         <activity
             android:name="com.letmegoo.app.MainActivity"
             android:exported="true"
