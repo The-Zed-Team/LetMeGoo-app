@@ -1,8 +1,14 @@
-// lib/widgets/buildreportsection.dart - Update to pass image data
+// lib/widgets/buildreportsection.dart - Updated with flag feature
 
 import 'package:flutter/material.dart';
 import '../constants/app_theme.dart';
 import '../widgets/reportcard.dart';
+
+// NEW: Enum to identify report type
+enum ReportType {
+  byUser,
+  againstUser,
+}
 
 Widget buildReportSection({
   required BuildContext context,
@@ -11,6 +17,7 @@ Widget buildReportSection({
   required double screenWidth,
   required bool isTablet,
   required bool isLargeScreen,
+  required ReportType reportType, // NEW: Add report type parameter
 }) {
   print('📊 Building report section: $title with ${reports.length} reports');
 
@@ -61,10 +68,13 @@ Widget buildReportSection({
               profileImage: report['profileImage'],
               latitude: report['latitude'],
               longitude: report['longitude'],
-              // ADD THESE NEW PARAMETERS
               images: (report['images'] as List<dynamic>?)?.cast<String>(),
               hasImages: report['hasImages'] ?? false,
               firstImage: report['firstImage'],
+              // NEW: Add flag-related parameters
+              reportId: report['reportId'], // The report ID for flagging
+              canFlag: reportType == ReportType.againstUser, // Only allow flagging reports against user
+              isReportAgainstUser: reportType == ReportType.againstUser,
             ),
           ),
         ),

@@ -140,6 +140,9 @@ class Report {
   // lib/models/report.dart - Fix the toWidgetFormat method
 
   // Convert to the format your existing widgets expect
+  // lib/models/report.dart - Add this updated toWidgetFormat method to your existing Report class
+
+  // Replace your existing toWidgetFormat method with this updated version:
   Map<String, dynamic> toWidgetFormat() {
     try {
       final widgetData = {
@@ -151,7 +154,7 @@ class Report {
         'profileImage': profileImage, // Reporter's profile picture
         'latitude': latitude,
         'longitude': longitude,
-        // ADD THESE LINES - Include report images
+        // Include report images
         'images':
             images
                 .map((img) => img.bestImage)
@@ -160,24 +163,36 @@ class Report {
         'hasImages': images.isNotEmpty,
         'imageCount': images.length,
         'firstImage': images.isNotEmpty ? images.first.bestImage : null,
+
+        // NEW: Add reportId for flagging functionality
+        'reportId': id, // This is the report ID needed for flagging
       };
+
+      print('Converted report to widget format:');
+      print('  - ID: $id');
+      print('  - Status: ${widgetData['status']}');
+      print('  - Reporter: ${widgetData['reporter']}');
+      print('  - Has images: ${widgetData['hasImages']}');
+      print('  - Report ID: ${widgetData['reportId']}');
 
       return widgetData;
     } catch (e) {
+      print('Error converting report to widget format: $e');
+      // Return basic format with error handling
       return {
         'timeDate': 'Unknown Time',
         'status': 'Unknown',
         'location': 'Unknown Location',
-        'message': 'Error loading report',
+        'message': 'Error loading report data',
         'reporter': 'Unknown',
         'profileImage': null,
         'latitude': null,
         'longitude': null,
-        // ADD THESE FALLBACK VALUES TOO
-        'images': [],
+        'images': <String>[],
         'hasImages': false,
         'imageCount': 0,
         'firstImage': null,
+        'reportId': id, // Still include ID even in error case
       };
     }
   }

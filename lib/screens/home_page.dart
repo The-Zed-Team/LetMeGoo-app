@@ -43,7 +43,7 @@ class _HomePageState extends ConsumerState<HomePage>
       print('  - Has error: ${currentState.error != null}');
 
       if (!cache.isCacheValid || currentState.totalReports == 0) {
-        print('📥 Starting to load reports...');
+        print('🔥 Starting to load reports...');
         reportsNotifier
             .loadReports()
             .then((_) {
@@ -255,7 +255,7 @@ class _HomePageState extends ConsumerState<HomePage>
                     }
 
                     if (reportsState.hasNoReports) {
-                      print('📭 Showing empty widget');
+                      print('🔭 Showing empty widget');
                       return _EmptyWidget(
                         screenHeight: screenHeight,
                         screenWidth: screenWidth,
@@ -383,8 +383,6 @@ class _ReportsContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-  
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -422,6 +420,7 @@ class _ReportsContent extends StatelessWidget {
             screenWidth: screenWidth,
             isTablet: isTablet,
             isLargeScreen: isLargeScreen,
+            reportType: ReportType.byUser, // NEW: Add report type
           ),
           SizedBox(height: screenHeight * 0.02),
           buildDivider(screenWidth),
@@ -436,6 +435,7 @@ class _ReportsContent extends StatelessWidget {
             screenWidth: screenWidth,
             isTablet: isTablet,
             isLargeScreen: isLargeScreen,
+            reportType: ReportType.againstUser, // NEW: Add report type
           ),
           SizedBox(height: screenHeight * 0.02),
           buildDivider(screenWidth),
@@ -449,6 +449,7 @@ class _ReportsContent extends StatelessWidget {
             screenWidth: screenWidth,
             isTablet: isTablet,
             isLargeScreen: isLargeScreen,
+            reportType: ReportType.byUser, // NEW: Add report type
           ),
           SizedBox(height: screenHeight * 0.02),
           buildDivider(screenWidth),
@@ -463,6 +464,7 @@ class _ReportsContent extends StatelessWidget {
             screenWidth: screenWidth,
             isTablet: isTablet,
             isLargeScreen: isLargeScreen,
+            reportType: ReportType.againstUser, // NEW: Add report type
           ),
         ],
         SizedBox(height: screenHeight * 0.02),

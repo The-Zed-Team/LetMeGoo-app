@@ -1,8 +1,9 @@
-// lib/widgets/reportcard.dart - Updated with map navigation functionality
+// lib/widgets/reportcard.dart - Complete updated version with flag functionality
 
 import 'package:flutter/material.dart';
 import 'package:letmegoo/constants/app_theme.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'flag_report_dialog.dart';
 
 class ReportCard extends StatelessWidget {
   final String timeDate;
@@ -13,10 +14,13 @@ class ReportCard extends StatelessWidget {
   final String? profileImage;
   final String? latitude;
   final String? longitude;
-  // ADD THESE NEW PARAMETERS
   final List<String>? images;
   final bool? hasImages;
   final String? firstImage;
+  // NEW: Flag-related parameters
+  final String? reportId;
+  final bool canFlag;
+  final bool isReportAgainstUser;
 
   const ReportCard({
     super.key,
@@ -28,10 +32,13 @@ class ReportCard extends StatelessWidget {
     this.profileImage,
     this.latitude,
     this.longitude,
-    // ADD THESE TO CONSTRUCTOR
     this.images,
     this.hasImages,
     this.firstImage,
+    // NEW: Add flag parameters to constructor
+    this.reportId,
+    this.canFlag = false,
+    this.isReportAgainstUser = false,
   });
 
   /// Open map with coordinates
@@ -74,7 +81,7 @@ class ReportCard extends StatelessWidget {
           );
 
           if (launched) {
-            print('🗺️ Successfully opened map with: $url');
+            print('Successfully opened map with: $url');
             break;
           }
         }
@@ -84,13 +91,38 @@ class ReportCard extends StatelessWidget {
         _showSnackBar(context, 'No maps application available', isError: true);
       }
     } catch (e) {
-      print('❌ Error opening map: $e');
+      print('Error opening map: $e');
       _showSnackBar(
         context,
         'Error opening map: Invalid coordinates',
         isError: true,
       );
     }
+  }
+
+  /// NEW: Show flag report dialog
+  void _showFlagDialog(BuildContext context) {
+    if (reportId == null) {
+      _showSnackBar(context, 'Cannot flag this report', isError: true);
+      return;
+    }
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return FlagReportDialog(
+          reportId: reportId!,
+          onSuccess: () {
+            _showSnackBar(
+              context,
+              'Thank you for flagging this report. We will review it.',
+              isError: false,
+            );
+          },
+        );
+      },
+    );
   }
 
   /// Show snackbar message
@@ -136,7 +168,7 @@ class ReportCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Time and Status Row
+          // Time and Status Row with Flag Button
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -156,34 +188,60 @@ class ReportCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: screenWidth * 0.025,
-                  vertical: screenWidth * 0.01,
-                ),
-                decoration: BoxDecoration(
-                  color:
-                      status.toLowerCase() == 'active'
-                          ? AppColors.lightRed
-                          : AppColors.lightGreen,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  status,
-                  style: AppFonts.semiBold14().copyWith(
-                    fontSize:
-                        screenWidth *
-                        (isLargeScreen
-                            ? 0.012
-                            : isTablet
-                            ? 0.02
-                            : 0.032),
-                    color:
-                        status.toLowerCase() == 'active'
-                            ? AppColors.darkRed
-                            : AppColors.darkGreen,
+              Row(
+                children: [
+                  // Status Badge
+                  Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: screenWidth * 0.025,
+                      vertical: screenWidth * 0.01,
+                    ),
+                    decoration: BoxDecoration(
+                      color:
+                          status.toLowerCase() == 'active'
+                              ? AppColors.lightRed
+                              : AppColors.lightGreen,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      status,
+                      style: AppFonts.semiBold14().copyWith(
+                        fontSize:
+                            screenWidth *
+                            (isLargeScreen
+                                ? 0.012
+                                : isTablet
+                                ? 0.02
+                                : 0.032),
+                        color:
+                            status.toLowerCase() == 'active'
+                                ? AppColors.darkRed
+                                : AppColors.darkGreen,
+                      ),
+                    ),
                   ),
-                ),
+
+                  // NEW: Flag Button (only for reports against user)
+                  if (canFlag && isReportAgainstUser) ...[
+                    const SizedBox(width: 8),
+                    GestureDetector(
+                      onTap: () => _showFlagDialog(context),
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: Colors.red[50],
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: Colors.red[200]!, width: 1),
+                        ),
+                        child: Icon(
+                          Icons.flag,
+                          color: Colors.red[600],
+                          size: 16,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ],
           ),
@@ -355,19 +413,42 @@ class ReportCard extends StatelessWidget {
               ),
               SizedBox(width: screenWidth * 0.025),
               Flexible(
-                child: Text(
-                  "Reported by $reporter",
-                  style: AppFonts.regular14().copyWith(
-                    fontSize:
-                        screenWidth *
-                        (isLargeScreen
-                            ? 0.012
-                            : isTablet
-                            ? 0.02
-                            : 0.032),
-                    color: AppColors.textSecondary,
-                  ),
-                  overflow: TextOverflow.ellipsis,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Reported by $reporter",
+                      style: AppFonts.regular14().copyWith(
+                        fontSize:
+                            screenWidth *
+                            (isLargeScreen
+                                ? 0.012
+                                : isTablet
+                                ? 0.02
+                                : 0.032),
+                        color: AppColors.textSecondary,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    // NEW: Add helpful text for reports against user
+                    if (isReportAgainstUser && canFlag) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        "Think this report is wrong? Tap the flag icon to report it.",
+                        style: AppFonts.regular14().copyWith(
+                          fontSize:
+                              screenWidth *
+                              (isLargeScreen
+                                  ? 0.01
+                                  : isTablet
+                                  ? 0.017
+                                  : 0.028),
+                          color: Colors.red[600],
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
             ],
