@@ -850,6 +850,9 @@ class _CreateReportPageState extends ConsumerState<CreateReportPage> {
         },
         error: (error, stackTrace) {
           print("Error submitting report: $error \n StackTrace: $stackTrace");
+          print("haii");
+          print(stackTrace);
+          print("hello");
           _showFullScreenDialog(
             "Error",
             "Failed to submit report. Please try again.",
@@ -894,14 +897,14 @@ class _CreateReportPageState extends ConsumerState<CreateReportPage> {
                                     ? 0.2
                                     : isTablet
                                     ? 0.25
-                                    : 0.4),
+                                    : 0.55),
                             width:
                                 screenWidth *
                                 (isLargeScreen
                                     ? 0.2
                                     : isTablet
                                     ? 0.25
-                                    : 0.4),
+                                    : 0.55),
                             fit: BoxFit.contain,
                           ),
 
@@ -920,7 +923,7 @@ class _CreateReportPageState extends ConsumerState<CreateReportPage> {
                                       ? 0.025
                                       : isTablet
                                       ? 0.035
-                                      : 0.055),
+                                      : 0.065),
                             ),
                           ),
 
@@ -939,7 +942,7 @@ class _CreateReportPageState extends ConsumerState<CreateReportPage> {
                                       ? 0.014
                                       : isTablet
                                       ? 0.025
-                                      : 0.035),
+                                      : 0.045),
                               color: AppColors.textSecondary,
                               height: 1.4,
                             ),

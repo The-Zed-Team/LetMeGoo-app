@@ -71,7 +71,7 @@ class _VehicleFoundPageState extends State<VehicleFoundPage> {
 
                       // Responsive image
                       Image.asset(
-                        AppImages.lock,
+                        AppImages.vehiclefound,
                         height: imageSize,
                         width: imageSize,
                       ),
