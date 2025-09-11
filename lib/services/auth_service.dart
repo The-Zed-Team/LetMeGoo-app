@@ -13,6 +13,16 @@ import 'package:letmegoo/models/report_request.dart';
 import 'package:letmegoo/services/device_service.dart';
 import 'package:letmegoo/services/google_auth_service.dart';
 import 'package:http_parser/http_parser.dart';
+// Add these exception classes at the top of your auth_service.dart file
+// (after imports but before the AuthService class)
+
+class ForbiddenException implements Exception {
+  final String message;
+  ForbiddenException(this.message);
+
+  @override
+  String toString() => message;
+}
 
 class AuthService {
   static const String baseUrl = 'https://api.letmegoo.com/api';
@@ -800,7 +810,7 @@ class AuthService {
         Uri.parse('$baseUrl/vehicle/report/'),
       );
 
-      // Add headers (remove Content-Type as it's set automatically for multipart)
+      // Add headers
       multipartRequest.headers.addAll({
         'Accept': 'application/json',
         'Authorization': 'Bearer $idToken',
@@ -809,50 +819,92 @@ class AuthService {
       // Add form fields
       multipartRequest.fields.addAll(request.toFormData());
 
-      // Add images if any - Fix: Use proper field names for each image
+      // Add images
       for (int i = 0; i < request.images.length; i++) {
         final file = request.images[i];
         if (await file.exists()) {
           final imageFile = await http.MultipartFile.fromPath(
-            'images', // Keep as 'images' for multiple files
+            'images',
             file.path,
-            // Add content type for better compatibility
-            contentType: MediaType(
-              'image',
-              'jpeg',
-            ), // Adjust based on your image type
+            contentType: MediaType('image', 'jpeg'),
           );
           multipartRequest.files.add(imageFile);
         }
       }
-
-      // // Debug: Print request details
-      // print('Request URL: ${multipartRequest.url}');
-      // print('Request fields: ${multipartRequest.fields}');
-      // print('Request files: ${multipartRequest.files.length}');
 
       final streamedResponse = await multipartRequest.send().timeout(
         timeoutDuration,
       );
       final response = await http.Response.fromStream(streamedResponse);
 
-      // print('Response status: ${response.statusCode}');
-      // print('Response body: ${response.body}');
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         return json.decode(response.body) as Map<String, dynamic>;
       } else {
-        // Print error details for debugging
+        // Enhanced error handling - Handle the specific "own vehicle" error
         print('Error response: ${response.body}');
-        _handleHttpError(response);
-        throw ApiException('Report submission failed');
+
+        // Try to parse the error response
+        try {
+          final errorBody = json.decode(response.body);
+          String errorMessage =
+              errorBody['message'] ?? 'Unknown error occurred';
+          String errorCode = errorBody['error_code'] ?? '';
+
+          print('Parsed error message: $errorMessage');
+          print('Parsed error code: $errorCode');
+
+          // Check specifically for "own vehicle" error FIRST
+          if (response.statusCode == 403 && errorCode == 'FORBIDDEN') {
+            if (errorMessage.toLowerCase().contains(
+              'cannot report your own vehicle',
+            )) {
+              print('🟢 Throwing ForbiddenException');
+              throw ForbiddenException(errorMessage);
+            }
+          }
+
+          // Handle other errors
+          switch (response.statusCode) {
+            case 400:
+              throw ValidationException(errorMessage);
+            case 401:
+              throw AuthException('Authentication failed');
+            case 403:
+              throw ForbiddenException(errorMessage);
+            case 404:
+              throw ApiException('Vehicle not found');
+            case 500:
+              throw ApiException('Server error. Please try again later.');
+            default:
+              throw ApiException('Failed to submit report: $errorMessage');
+          }
+        } catch (e) {
+          // If it's already our custom exception, re-throw it
+          if (e is ForbiddenException ||
+              e is ValidationException ||
+              e is AuthException ||
+              e is ApiException) {
+            rethrow;
+          }
+
+          print('Failed to parse error JSON: $e');
+          // Fallback for unparseable JSON but 403 status
+          if (response.statusCode == 403) {
+            throw ForbiddenException('You cannot report your own vehicle.');
+          }
+          throw ApiException('Report submission failed');
+        }
       }
     } on TimeoutException {
       throw ConnectivityException('Request timeout');
     } on SocketException {
       throw ConnectivityException('Network error');
     } catch (e) {
-      if (e is AuthException ||
+      if (e is ForbiddenException ||
+          e is AuthException ||
           e is ApiException ||
           e is ConnectivityException ||
           e is ValidationException) {

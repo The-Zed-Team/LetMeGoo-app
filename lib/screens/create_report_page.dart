@@ -15,7 +15,7 @@ import 'package:letmegoo/screens/vehicle_found_page.dart';
 import 'package:letmegoo/widgets/main_app.dart';
 import '../../widgets/custom_bottom_nav.dart';
 
-// State Management with Riverpod - FIXED the syntax error here
+// State Management with Riverpod
 final reportStateProvider = StateNotifierProvider<
   ReportStateNotifier,
   AsyncValue<Map<String, dynamic>?>
@@ -112,7 +112,7 @@ class CreateReportPage extends ConsumerStatefulWidget {
 class _CreateReportPageState extends ConsumerState<CreateReportPage> {
   final TextEditingController regNumberController = TextEditingController();
   final LocationService _locationService = LocationService();
-  final ImagePicker _picker = ImagePicker(); // Add ImagePicker instance
+  final ImagePicker _picker = ImagePicker();
 
   bool isAnonymous = true;
   List<File> _images = [];
@@ -146,8 +146,7 @@ class _CreateReportPageState extends ConsumerState<CreateReportPage> {
     );
   }
 
-  // ENHANCED: Show image source selection dialog
-  // ENHANCED: Updated image source dialog with debug info
+  // Show image source selection dialog
   Future<void> _showImageSourceDialog() async {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
@@ -156,26 +155,20 @@ class _CreateReportPageState extends ConsumerState<CreateReportPage> {
 
     showModalBottomSheet(
       context: context,
-      isScrollControlled: true, // FIXED: Allow custom height
+      isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (BuildContext context) {
         return Container(
-          // FIXED: Max height to prevent overflow
-          constraints: BoxConstraints(
-            maxHeight: screenHeight * 0.75, // Max 75% of screen height
-          ),
+          constraints: BoxConstraints(maxHeight: screenHeight * 0.75),
           decoration: const BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
           ),
           child: SafeArea(
             child: Column(
-              mainAxisSize: MainAxisSize.min, // FIXED: Use min size
+              mainAxisSize: MainAxisSize.min,
               children: [
-                // FIXED: Smaller padding
                 const SizedBox(height: 12),
-
-                // Handle bar
                 Container(
                   width: 50,
                   height: 4,
@@ -184,15 +177,12 @@ class _CreateReportPageState extends ConsumerState<CreateReportPage> {
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
-
-                // FIXED: Scrollable content
                 Flexible(
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.all(20),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // Title
                         Text(
                           'Add Photos to Report',
                           style: TextStyle(
@@ -202,16 +192,12 @@ class _CreateReportPageState extends ConsumerState<CreateReportPage> {
                                     ? 0.018
                                     : isTablet
                                     ? 0.028
-                                    : 0.045), // FIXED: Smaller font
+                                    : 0.045),
                             fontWeight: FontWeight.bold,
                             color: AppColors.textPrimary,
                           ),
                         ),
-
-                        SizedBox(
-                          height: screenHeight * 0.01,
-                        ), // FIXED: Smaller spacing
-                        // Description
+                        SizedBox(height: screenHeight * 0.01),
                         Text(
                           'Photos help provide clear evidence for your report',
                           style: TextStyle(
@@ -221,16 +207,12 @@ class _CreateReportPageState extends ConsumerState<CreateReportPage> {
                                     ? 0.014
                                     : isTablet
                                     ? 0.022
-                                    : 0.032), // FIXED: Smaller font
+                                    : 0.032),
                             color: AppColors.textSecondary,
                           ),
                           textAlign: TextAlign.center,
                         ),
-
-                        SizedBox(
-                          height: screenHeight * 0.025,
-                        ), // FIXED: Smaller spacing
-                        // Camera option
+                        SizedBox(height: screenHeight * 0.025),
                         _buildCompactImageSourceOption(
                           icon: Icons.camera_alt,
                           title: 'Take Photo',
@@ -243,11 +225,7 @@ class _CreateReportPageState extends ConsumerState<CreateReportPage> {
                           isTablet: isTablet,
                           isLargeScreen: isLargeScreen,
                         ),
-
-                        SizedBox(
-                          height: screenHeight * 0.012,
-                        ), // FIXED: Smaller spacing
-                        // Gallery option
+                        SizedBox(height: screenHeight * 0.012),
                         _buildCompactImageSourceOption(
                           icon: Icons.photo_library,
                           title: 'Choose from Gallery',
@@ -260,11 +238,7 @@ class _CreateReportPageState extends ConsumerState<CreateReportPage> {
                           isTablet: isTablet,
                           isLargeScreen: isLargeScreen,
                         ),
-
-                        SizedBox(
-                          height: screenHeight * 0.012,
-                        ), // FIXED: Smaller spacing
-                        // Multiple photos option
+                        SizedBox(height: screenHeight * 0.012),
                         _buildCompactImageSourceOption(
                           icon: Icons.photo_library_outlined,
                           title: 'Select Multiple Photos',
@@ -277,11 +251,7 @@ class _CreateReportPageState extends ConsumerState<CreateReportPage> {
                           isTablet: isTablet,
                           isLargeScreen: isLargeScreen,
                         ),
-
-                        SizedBox(
-                          height: screenHeight * 0.02,
-                        ), // FIXED: Smaller spacing
-                        // Cancel button
+                        SizedBox(height: screenHeight * 0.02),
                         TextButton(
                           onPressed: () => Navigator.pop(context),
                           child: Text(
@@ -310,7 +280,6 @@ class _CreateReportPageState extends ConsumerState<CreateReportPage> {
     );
   }
 
-  // FIXED: Compact version of image source option to prevent overflow
   Widget _buildCompactImageSourceOption({
     required IconData icon,
     required String title,
@@ -324,23 +293,18 @@ class _CreateReportPageState extends ConsumerState<CreateReportPage> {
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
       child: Container(
-        padding: EdgeInsets.all(
-          screenWidth * 0.035,
-        ), // FIXED: Responsive padding
+        padding: EdgeInsets.all(screenWidth * 0.035),
         decoration: BoxDecoration(
           border: Border.all(color: AppColors.textSecondary.withOpacity(0.2)),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
           children: [
-            // FIXED: Smaller icon container
             Container(
-              padding: EdgeInsets.all(
-                screenWidth * 0.025,
-              ), // FIXED: Responsive padding
+              padding: EdgeInsets.all(screenWidth * 0.025),
               decoration: BoxDecoration(
                 color: AppColors.primary.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8), // FIXED: Smaller radius
+                borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
                 icon,
@@ -351,16 +315,14 @@ class _CreateReportPageState extends ConsumerState<CreateReportPage> {
                         ? 0.02
                         : isTablet
                         ? 0.03
-                        : 0.05), // FIXED: Smaller icons
+                        : 0.05),
               ),
             ),
-
-            SizedBox(width: screenWidth * 0.03), // FIXED: Smaller spacing
-            // FIXED: Flexible text to prevent overflow
+            SizedBox(width: screenWidth * 0.03),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min, // FIXED: Min size
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
                     title,
@@ -371,14 +333,14 @@ class _CreateReportPageState extends ConsumerState<CreateReportPage> {
                               ? 0.014
                               : isTablet
                               ? 0.022
-                              : 0.035), // FIXED: Smaller font
+                              : 0.035),
                       fontWeight: FontWeight.w600,
                       color: AppColors.textPrimary,
                     ),
-                    maxLines: 1, // FIXED: Prevent text overflow
+                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 2), // FIXED: Minimal spacing
+                  const SizedBox(height: 2),
                   Text(
                     description,
                     style: TextStyle(
@@ -388,17 +350,15 @@ class _CreateReportPageState extends ConsumerState<CreateReportPage> {
                               ? 0.012
                               : isTablet
                               ? 0.018
-                              : 0.028), // FIXED: Smaller font
+                              : 0.028),
                       color: AppColors.textSecondary,
                     ),
-                    maxLines: 2, // FIXED: Limit lines
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
             ),
-
-            // FIXED: Smaller arrow icon
             Icon(
               Icons.arrow_forward_ios,
               color: AppColors.textSecondary,
@@ -408,7 +368,7 @@ class _CreateReportPageState extends ConsumerState<CreateReportPage> {
                       ? 0.012
                       : isTablet
                       ? 0.018
-                      : 0.03), // FIXED: Smaller arrow
+                      : 0.03),
             ),
           ],
         ),
@@ -416,14 +376,8 @@ class _CreateReportPageState extends ConsumerState<CreateReportPage> {
     );
   }
 
-  // ALTERNATIVE: Even more compact version if still having issues
-
-  // Simple button widget
-
-  // ENHANCED: Alternative camera method with better error handling
   Future<void> _openCamera() async {
     try {
-      // Direct camera call with all parameters
       final XFile? photo = await _picker.pickImage(
         source: ImageSource.camera,
         maxWidth: 1920,
@@ -434,8 +388,6 @@ class _CreateReportPageState extends ConsumerState<CreateReportPage> {
 
       if (photo != null) {
         final File imageFile = File(photo.path);
-
-        // Verify file exists
         if (await imageFile.exists()) {
           setState(() {
             _images.add(imageFile);
@@ -452,64 +404,19 @@ class _CreateReportPageState extends ConsumerState<CreateReportPage> {
     }
   }
 
-  // ENHANCED: Test all image sources
-  // Future<void> _testAllImageSources() async {
-  //   showDialog(
-  //     context: context,
-  //     builder:
-  //         (context) => AlertDialog(
-  //           title: Text('Test Image Sources'),
-  //           content: Column(
-  //             mainAxisSize: MainAxisSize.min,
-  //             children: [
-  //               ElevatedButton(
-  //                 onPressed: () async {
-  //                   Navigator.pop(context);
-  //                   await _openCamera();
-  //                 },
-  //                 child: Text('Test Camera Direct'),
-  //               ),
-  //               SizedBox(height: 10),
-  //               ElevatedButton(
-  //                 onPressed: () async {
-  //                   Navigator.pop(context);
-  //                   await _pickImageFromSource(ImageSource.camera);
-  //                 },
-  //                 child: Text('Test Camera via Source'),
-  //               ),
-  //               SizedBox(height: 10),
-  //               ElevatedButton(
-  //                 onPressed: () async {
-  //                   Navigator.pop(context);
-  //                   await _pickImageFromSource(ImageSource.gallery);
-  //                 },
-  //                 child: Text('Test Gallery'),
-  //               ),
-  //             ],
-  //           ),
-  //         ),
-  //   );
-  // }
-
-  // ENHANCED: Build image source option widget
-
-  // ENHANCED: Pick image from specific source (camera or gallery)
   Future<void> _pickImageFromSource(ImageSource source) async {
     try {
-      // For camera, be more explicit
       XFile? image;
 
       if (source == ImageSource.camera) {
-        // Force camera with explicit parameters
         image = await _picker.pickImage(
           source: ImageSource.camera,
           maxWidth: 1920,
           maxHeight: 1080,
           imageQuality: 85,
-          preferredCameraDevice: CameraDevice.rear, // Force rear camera
+          preferredCameraDevice: CameraDevice.rear,
         );
       } else {
-        // Gallery selection
         image = await _picker.pickImage(
           source: ImageSource.gallery,
           maxWidth: 1920,
@@ -543,7 +450,6 @@ class _CreateReportPageState extends ConsumerState<CreateReportPage> {
     }
   }
 
-  // ENHANCED: Pick multiple images from gallery
   Future<void> _pickMultipleImages() async {
     try {
       final List<XFile> images = await _picker.pickMultiImage(
@@ -566,12 +472,10 @@ class _CreateReportPageState extends ConsumerState<CreateReportPage> {
     }
   }
 
-  // ENHANCED: Keep your original _pickImages method but update it to use the dialog
   Future<void> _pickImages() async {
     _showImageSourceDialog();
   }
 
-  // ENHANCED: Add SnackBar helper method
   void _showSnackBar(String message, {required bool isError}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -588,16 +492,14 @@ class _CreateReportPageState extends ConsumerState<CreateReportPage> {
     });
 
     try {
-      // Use medium accuracy to avoid GNSS callbacks
       final result = await _locationService.getCurrentLocation(
-        accuracy: LocationAccuracy.medium, // Explicitly set to medium
+        accuracy: LocationAccuracy.medium,
         timeLimit: const Duration(seconds: 15),
       );
 
       if (result.isSuccess) {
         return result.position;
       } else {
-        // Handle different error types including system errors
         switch (result.errorType) {
           case LocationErrorType.serviceDisabled:
             LocationService.showLocationServiceDialog(context);
@@ -699,11 +601,64 @@ class _CreateReportPageState extends ConsumerState<CreateReportPage> {
                             () {
                               Navigator.of(context).pop();
                               if (!isError) {
-                                Navigator.of(
-                                  context,
-                                ).pop(); // Go back to previous screen
+                                Navigator.of(context).pop();
                               }
                             },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+    );
+  }
+
+  // Enhanced dialog specifically for "own vehicle" error
+  void _showOwnVehicleErrorDialog() {
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    final isSmallScreen = screenHeight < 600;
+    final isLargeScreen = screenHeight > 800;
+    final imageSize = isSmallScreen ? 120.0 : (isLargeScreen ? 200.0 : 185.0);
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder:
+          (context) => Dialog.fullscreen(
+            child: Container(
+              color: AppColors.background,
+              child: SafeArea(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Image.asset(
+                      AppImages.reportown,
+                      height: imageSize,
+                      width: imageSize,
+                    ),
+                    const SizedBox(height: 20),
+
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 40),
+                      child: Text(
+                        "Oh sorry, you can't report your own vehicle!! you funny user!!",
+                        style: AppFonts.regular16().copyWith(
+                          color: AppColors.textSecondary,
+                          height: 1.5,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    const SizedBox(height: 40),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: CommonButton(
+                        text: "OK",
+                        onTap: () {
+                          Navigator.of(context).pop();
+                        },
                       ),
                     ),
                   ],
@@ -743,26 +698,22 @@ class _CreateReportPageState extends ConsumerState<CreateReportPage> {
       return;
     }
 
-    // Get current location
     Position? position = await _getCurrentLocation();
     if (position == null) {
-      // Location was not obtained, user was already notified
       return;
     }
 
-    // Get address from coordinates (optional)
     String location = await _getAddressFromCoordinates(
       position.latitude,
       position.longitude,
     );
-
     final finalMessage = _getFinalMessage();
 
     final request = ReportRequest(
-      vehicleId: regNumber, // Using registration number as vehicleId
+      vehicleId: regNumber,
       images: _images,
       isAnonymous: isAnonymous,
-      notes: finalMessage, // Use the generated message
+      notes: finalMessage,
       longitude: position.longitude.toString(),
       latitude: position.latitude.toString(),
       location: location,
@@ -783,16 +734,13 @@ class _CreateReportPageState extends ConsumerState<CreateReportPage> {
       next.when(
         data: (vehicle) {
           if (vehicle != null) {
-            // Navigate to notify page with vehicle data
             Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (context) => VehicleFoundPage(vehicle: vehicle),
               ),
             );
-            // ref.read(vehicleSearchProvider.notifier).resetState();
           } else {
-            // Show vehicle not registered dialog
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => OwnerNotFoundPage()),
@@ -811,7 +759,7 @@ class _CreateReportPageState extends ConsumerState<CreateReportPage> {
       );
     });
 
-    // Listen to report state changes
+    // Enhanced: Listen to report state changes with specific "own vehicle" error handling
     ref.listen<AsyncValue<Map<String, dynamic>?>>(reportStateProvider, (
       previous,
       next,
@@ -823,11 +771,9 @@ class _CreateReportPageState extends ConsumerState<CreateReportPage> {
               "Report Submitted",
               "Your report has been submitted successfully. The vehicle owner will be notified.",
               onOkPressed: () {
-                Navigator.of(context).pop(); // Close dialog
+                Navigator.of(context).pop();
                 Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(
-                    builder: (context) => MainApp(),
-                  ), // Replace with your home page widget
+                  MaterialPageRoute(builder: (context) => MainApp()),
                   (Route<dynamic> route) => false,
                 );
               },
@@ -836,11 +782,21 @@ class _CreateReportPageState extends ConsumerState<CreateReportPage> {
           }
         },
         error: (error, stackTrace) {
-          _showFullScreenDialog(
-            "Error",
-            "Failed to submit report. Please try again.",
-            isError: true,
-          );
+          String errorMessage = error.toString();
+
+          // Check if it's the "own vehicle" error
+          if (errorMessage.contains("You cannot report your own vehicle") ||
+              errorMessage.contains("FORBIDDEN") ||
+              errorMessage.contains("cannot report your own vehicle") ||
+              error is ForbiddenException) {
+            _showOwnVehicleErrorDialog();
+          } else {
+            _showFullScreenDialog(
+              "Error",
+              "Failed to submit report. Please try again.",
+              isError: true,
+            );
+          }
           ref.read(reportStateProvider.notifier).resetState();
         },
         loading: () {},
@@ -857,7 +813,6 @@ class _CreateReportPageState extends ConsumerState<CreateReportPage> {
           children: [
             Column(
               children: [
-                // Scrollable Content
                 Expanded(
                   child: SingleChildScrollView(
                     padding: EdgeInsets.symmetric(
@@ -870,8 +825,6 @@ class _CreateReportPageState extends ConsumerState<CreateReportPage> {
                       child: Column(
                         children: [
                           SizedBox(height: screenHeight * 0.02),
-
-                          // Angry Lock Image
                           Image.asset(
                             AppImages.home,
                             height:
@@ -890,10 +843,7 @@ class _CreateReportPageState extends ConsumerState<CreateReportPage> {
                                     : 0.55),
                             fit: BoxFit.contain,
                           ),
-
                           SizedBox(height: screenHeight * 0.02),
-
-                          // Title
                           Text(
                             isReportMode
                                 ? "Inform Owner"
@@ -909,10 +859,7 @@ class _CreateReportPageState extends ConsumerState<CreateReportPage> {
                                       : 0.065),
                             ),
                           ),
-
                           SizedBox(height: screenHeight * 0.015),
-
-                          // Description
                           Text(
                             isReportMode
                                 ? "Fill in the details below so we can alert the\nowner and get things moving quickly."
@@ -930,14 +877,10 @@ class _CreateReportPageState extends ConsumerState<CreateReportPage> {
                               height: 1.4,
                             ),
                           ),
-
                           SizedBox(height: screenHeight * 0.04),
-
-                          // Registration Number Field
                           TextField(
                             controller: regNumberController,
-                            readOnly:
-                                isReportMode, // Make readonly in report mode
+                            readOnly: isReportMode,
                             style: TextStyle(
                               fontSize:
                                   screenWidth *
@@ -1014,8 +957,6 @@ class _CreateReportPageState extends ConsumerState<CreateReportPage> {
                           // Show additional fields only in report mode
                           if (isReportMode) ...[
                             SizedBox(height: screenHeight * 0.025),
-
-                            // Message Type Dropdown
                             DropdownButtonFormField<MessageOption>(
                               value: selectedMessageOption,
                               decoration: InputDecoration(
@@ -1208,8 +1149,6 @@ class _CreateReportPageState extends ConsumerState<CreateReportPage> {
                             // Show selected images
                             if (_images.isNotEmpty) ...[
                               SizedBox(height: screenHeight * 0.02),
-
-                              // ENHANCED: Header with count and clear all
                               Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
@@ -1253,9 +1192,7 @@ class _CreateReportPageState extends ConsumerState<CreateReportPage> {
                                   ),
                                 ],
                               ),
-
                               SizedBox(height: screenHeight * 0.01),
-
                               SizedBox(
                                 height: screenHeight * 0.15,
                                 child: ListView.builder(
@@ -1266,7 +1203,6 @@ class _CreateReportPageState extends ConsumerState<CreateReportPage> {
                                       margin: const EdgeInsets.only(right: 12),
                                       child: Stack(
                                         children: [
-                                          // ENHANCED: Image with border radius
                                           ClipRRect(
                                             borderRadius: BorderRadius.circular(
                                               12,
@@ -1278,8 +1214,6 @@ class _CreateReportPageState extends ConsumerState<CreateReportPage> {
                                               fit: BoxFit.cover,
                                             ),
                                           ),
-
-                                          // ENHANCED: Improved delete button
                                           Positioned(
                                             top: 8,
                                             right: 8,
@@ -1311,8 +1245,6 @@ class _CreateReportPageState extends ConsumerState<CreateReportPage> {
                                               ),
                                             ),
                                           ),
-
-                                          // ENHANCED: Image index indicator
                                           Positioned(
                                             bottom: 8,
                                             left: 8,

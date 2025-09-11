@@ -15,4 +15,5 @@ class AppImages {
   static const String logo = 'assets/icon/app_icon.png';
   static const String appleLogo = 'assets/images/apple_logo.png';
   static const String vehiclefound = 'assets/images/vehicle_found.png';
+  static const String reportown = 'assets/images/report_own.png';
 }

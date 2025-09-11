@@ -1076,6 +1076,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                   ),
                 ),
                 SizedBox(width: screenWidth * 0.03),
+
                 Expanded(
                   child: TextButton(
                     onPressed: () async {
