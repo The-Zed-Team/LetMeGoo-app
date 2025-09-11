@@ -87,6 +87,50 @@ class AuthService {
     }
   }
 
+  /// Updates user status
+  static Future<Map<String, dynamic>?> updateUserStatus(
+    String newStatus,
+  ) async {
+    try {
+      // Check connectivity first
+      if (!await _hasInternetConnection()) {
+        throw ConnectivityException('No internet connection');
+      }
+
+      final headers = await _getAuthHeaders(
+        contentType: 'application/x-www-form-urlencoded',
+      );
+
+      final response = await _httpClient
+          .patch(
+            Uri.parse('$baseUrl/user/status'),
+            headers: headers,
+            body: 'new_status=$newStatus',
+          )
+          .timeout(timeoutDuration);
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body) as Map<String, dynamic>;
+      } else {
+        _handleHttpError(response);
+        return null;
+      }
+    } on TimeoutException {
+      throw ConnectivityException('Request timeout');
+    } on SocketException {
+      throw ConnectivityException('Network error');
+    } on FormatException {
+      throw ApiException('Invalid response format');
+    } catch (e) {
+      if (e is AuthException ||
+          e is ApiException ||
+          e is ConnectivityException) {
+        rethrow;
+      }
+      throw ApiException('Failed to update user status: $e');
+    }
+  }
+
   /// Authenticates user with enhanced error handling
   static Future<Map<String, dynamic>?> authenticateUser() async {
     try {

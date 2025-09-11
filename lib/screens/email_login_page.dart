@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:letmegoo/constants/app_theme.dart';
 import 'package:letmegoo/constants/app_images.dart';
-import 'package:letmegoo/models/user_model.dart';
 import 'package:letmegoo/screens/user_detail_reg_page.dart';
 import 'package:letmegoo/screens/welcome_page.dart';
 import 'package:letmegoo/widgets/main_app.dart';
 import 'package:letmegoo/services/auth_service.dart';
 import 'package:letmegoo/services/device_service.dart';
+import 'package:letmegoo/services/analytics_service.dart';
 import 'package:letmegoo/models/login_method.dart';
 
 // Import the signup page
@@ -28,6 +28,12 @@ class _EmailLoginPageState extends State<EmailLoginPage> {
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _rememberMe = false;
+
+  @override
+  void initState() {
+    super.initState();
+    AnalyticsService.logScreenView('email_login_page');
+  }
 
   @override
   void dispose() {
@@ -351,14 +357,21 @@ class _EmailLoginPageState extends State<EmailLoginPage> {
     setState(() => _isLoading = true);
 
     try {
-      // UserCredential userCredential = await FirebaseAuth.instance
-      //     .signInWithEmailAndPassword(
-      //       email: _emailController.text.trim(),
-      //       password: _passwordController.text.trim(),
-      //     );
+      // 🔥 FIXED: Uncommented and implemented proper Firebase authentication
+      UserCredential userCredential = await FirebaseAuth.instance
+          .signInWithEmailAndPassword(
+            email: _emailController.text.trim(),
+            password: _passwordController.text.trim(),
+          );
 
-      // For existing users (login), we don't require email verification
-      // Only new signups require verification
+      final User? user = userCredential.user;
+      if (user == null) {
+        throw Exception('Failed to get user information');
+      }
+
+      // Track successful login
+      await AnalyticsService.logLogin('email');
+      await AnalyticsService.setUserId(user.uid);
 
       // Register device for push notifications
       await _registerDeviceAfterLogin();
@@ -366,15 +379,17 @@ class _EmailLoginPageState extends State<EmailLoginPage> {
       if (mounted) {
         _showSnackBar('Welcome back!', isError: false);
 
-        // Check if user profile is complete
-        await _checkUserProfileAndNavigate();
+        // 🔥 FIXED: Use new navigation logic with status field
+        await _handlePostAuthenticationNavigation();
       }
     } on FirebaseAuthException catch (e) {
+      AnalyticsService.recordError(e, null);
       String errorMessage = _getFirebaseErrorMessage(e.code);
       if (mounted) {
         _showSnackBar(errorMessage, isError: true);
       }
     } catch (e) {
+      AnalyticsService.recordError(e, null);
       if (mounted) {
         _showSnackBar('Sign in failed. Please try again.', isError: true);
       }
@@ -385,49 +400,61 @@ class _EmailLoginPageState extends State<EmailLoginPage> {
     }
   }
 
-  Future<void> _checkUserProfileAndNavigate() async {
+  // 🔥 NEW: Use the same navigation method as Google/Apple login
+  Future<void> _handlePostAuthenticationNavigation() async {
     try {
       final userData = await AuthService.authenticateUser();
 
       if (userData != null) {
-        final UserModel userModel = UserModel.fromJson(userData);
+        // 🔥 NEW: Check status field instead of fullname
+        final String? status = userData['status'] as String?;
 
-        // Only check for essential fields - phone number is optional
-        if (userModel.fullname != "Unknown User" &&
-            userModel.fullname!.isNotEmpty) {
-          // User has complete profile, navigate to main app
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const MainApp()),
-          );
+        if (status == 'profile_completed') {
+          // User has completed profile, navigate to main app
+          _navigateToMainApp();
+        } else if (status == 'registered') {
+          // User is registered but needs to complete profile
+          _navigateToUserDetails(LoginMethod.email);
         } else {
-          // User needs to complete profile
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder:
-                  (context) =>
-                      const UserDetailRegPage(loginMethod: LoginMethod.email),
-            ),
-          );
+          // Unknown status, navigate to welcome for safety
+          _navigateToWelcome();
         }
       } else {
         // User doesn't exist in backend, navigate to welcome
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const WelcomePage()),
-        );
+        _navigateToWelcome();
       }
     } catch (e) {
+      AnalyticsService.recordError(e, null);
       // API call failed, navigate to welcome page
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const WelcomePage()),
-      );
+      _navigateToWelcome();
     }
+  }
+
+  void _navigateToMainApp() {
+    Navigator.of(
+      context,
+    ).pushReplacement(MaterialPageRoute(builder: (context) => const MainApp()));
+  }
+
+  void _navigateToUserDetails(LoginMethod loginMethod) {
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (context) => UserDetailRegPage(loginMethod: loginMethod),
+      ),
+    );
+  }
+
+  void _navigateToWelcome() {
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (context) => const WelcomePage()),
+    );
   }
 
   Future<void> _registerDeviceAfterLogin() async {
     try {
       await DeviceService.registerDevice();
     } catch (e) {
-      print('Device registration failed: $e');
+      AnalyticsService.recordError(e, null);
     }
   }
 

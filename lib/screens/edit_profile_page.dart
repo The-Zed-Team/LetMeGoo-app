@@ -19,7 +19,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   final _emailController = TextEditingController();
 
   bool _isLoading = false;
-  bool _isEmailReadOnly =
+  final bool _isEmailReadOnly =
       true; // Email is typically read-only after registration
 
   @override

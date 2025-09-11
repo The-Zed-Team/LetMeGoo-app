@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:letmegoo/constants/app_theme.dart';
 import 'package:letmegoo/constants/app_images.dart';
-import 'package:letmegoo/models/user_model.dart';
 import 'package:letmegoo/screens/email_signup_page.dart';
 import 'package:letmegoo/screens/privacy_policy_page.dart';
 import 'package:letmegoo/screens/terms_and_condition_page.dart';
@@ -13,7 +12,7 @@ import 'package:letmegoo/services/google_auth_service.dart';
 import 'package:letmegoo/services/apple_auth_service.dart';
 import 'package:letmegoo/services/auth_service.dart';
 import 'package:letmegoo/services/device_service.dart';
-import 'package:letmegoo/services/analytics_service.dart'; // 🔥 ADD THIS IMPORT
+import 'package:letmegoo/services/analytics_service.dart';
 import 'package:letmegoo/models/login_method.dart';
 import 'dart:io' show Platform;
 
@@ -28,7 +27,6 @@ class _LoginPageState extends State<LoginPage> {
   bool _isGoogleLoading = false;
   bool _isAppleLoading = false;
 
-  // 🔥 ADD THIS METHOD - Track screen view when page loads
   @override
   void initState() {
     super.initState();
@@ -208,7 +206,6 @@ class _LoginPageState extends State<LoginPage> {
               height: buttonHeight,
               child: ElevatedButton(
                 onPressed: () async {
-                  // 🔥 ADD THIS - Track button click
                   await AnalyticsService.logButtonClick(
                     'continue_with_email',
                     'login_page',
@@ -245,7 +242,6 @@ class _LoginPageState extends State<LoginPage> {
                     _isGoogleLoading
                         ? null
                         : () async {
-                          // 🔥 ADD THIS - Track button click
                           await AnalyticsService.logButtonClick(
                             'continue_with_google',
                             'login_page',
@@ -304,7 +300,6 @@ class _LoginPageState extends State<LoginPage> {
                       _isAppleLoading
                           ? null
                           : () async {
-                            // 🔥 ADD THIS - Track button click
                             await AnalyticsService.logButtonClick(
                               'continue_with_apple',
                               'login_page',
@@ -395,7 +390,6 @@ class _LoginPageState extends State<LoginPage> {
       children: [
         TextButton(
           onPressed: () async {
-            // 🔥 ADD THIS - Track button click
             await AnalyticsService.logButtonClick(
               'privacy_policy',
               'login_page',
@@ -418,7 +412,6 @@ class _LoginPageState extends State<LoginPage> {
         const SizedBox(width: 20),
         TextButton(
           onPressed: () async {
-            // 🔥 ADD THIS - Track button click
             await AnalyticsService.logButtonClick(
               'terms_of_service',
               'login_page',
@@ -466,6 +459,38 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
+  // 🔥 UPDATED: Create reusable method for post-authentication navigation
+  Future<void> _handlePostAuthenticationNavigation(
+    User user,
+    LoginMethod loginMethod,
+  ) async {
+    try {
+      final userData = await AuthService.authenticateUser();
+
+      if (userData != null) {
+        // 🔥 NEW: Check status field instead of fullname
+        final String? status = userData['status'] as String?;
+
+        if (status == 'profile_completed') {
+          // User has completed profile, navigate to main app
+          _navigateToMainApp();
+        } else if (status == 'registered') {
+          // User is registered but needs to complete profile
+          _navigateToUserDetails(loginMethod);
+        } else {
+          // Unknown status, navigate to welcome for safety
+
+          _navigateToWelcome();
+        }
+      } else {
+        _navigateToWelcome();
+      }
+    } catch (e) {
+      AnalyticsService.recordError(e, null);
+      _navigateToWelcome();
+    }
+  }
+
   Future<void> _handleGoogleSignIn() async {
     setState(() {
       _isGoogleLoading = true;
@@ -487,39 +512,18 @@ class _LoginPageState extends State<LoginPage> {
         throw Exception('Failed to get user information');
       }
 
-      // 🔥 ADD THIS - Track successful login
       await AnalyticsService.logLogin('google');
       await AnalyticsService.setUserId(user.uid);
 
       _showSnackBar('Google sign-in successful!', isError: false);
       await _registerDeviceAfterLogin();
 
-      try {
-        final userData = await AuthService.authenticateUser();
-
-        if (userData != null) {
-          final UserModel userModel = UserModel.fromJson(userData);
-
-          if (userModel.fullname != "Unknown User" &&
-              userModel.fullname!.isNotEmpty) {
-            _navigateToMainApp();
-          } else {
-            _navigateToUserDetails(LoginMethod.google);
-          }
-        } else {
-          _navigateToWelcome();
-        }
-      } catch (e) {
-        // 🔥 ADD THIS - Track auth errors
-        AnalyticsService.recordError(e, null);
-        _navigateToWelcome();
-      }
+      // 🔥 UPDATED: Use new navigation method
+      await _handlePostAuthenticationNavigation(user, LoginMethod.google);
     } on FirebaseAuthException catch (e) {
-      // 🔥 ADD THIS - Track Firebase auth errors
       AnalyticsService.recordError(e, null);
       _handleFirebaseError(e);
     } catch (e) {
-      // 🔥 ADD THIS - Track general errors
       AnalyticsService.recordError(e, null);
       _showSnackBar('Sign-in failed: ${e.toString()}', isError: true);
     } finally {
@@ -550,39 +554,18 @@ class _LoginPageState extends State<LoginPage> {
         throw Exception('Failed to get user information');
       }
 
-      // 🔥 ADD THIS - Track successful login
       await AnalyticsService.logLogin('apple');
       await AnalyticsService.setUserId(user.uid);
 
       _showSnackBar('Apple sign-in successful!', isError: false);
       await _registerDeviceAfterLogin();
 
-      try {
-        final userData = await AuthService.authenticateUser();
-
-        if (userData != null) {
-          final UserModel userModel = UserModel.fromJson(userData);
-
-          if (userModel.fullname != "Unknown User" &&
-              userModel.fullname!.isNotEmpty) {
-            _navigateToMainApp();
-          } else {
-            _navigateToUserDetails(LoginMethod.apple);
-          }
-        } else {
-          _navigateToWelcome();
-        }
-      } catch (e) {
-        // 🔥 ADD THIS - Track auth errors
-        AnalyticsService.recordError(e, null);
-        _navigateToWelcome();
-      }
+      // 🔥 UPDATED: Use new navigation method
+      await _handlePostAuthenticationNavigation(user, LoginMethod.apple);
     } on FirebaseAuthException catch (e) {
-      // 🔥 ADD THIS - Track Firebase auth errors
       AnalyticsService.recordError(e, null);
       _handleFirebaseError(e);
     } catch (e) {
-      // 🔥 ADD THIS - Track general errors
       AnalyticsService.recordError(e, null);
       _showSnackBar('Sign-in failed: ${e.toString()}', isError: true);
     } finally {
@@ -625,11 +608,8 @@ class _LoginPageState extends State<LoginPage> {
   Future<void> _registerDeviceAfterLogin() async {
     try {
       await DeviceService.registerDevice();
-      print('Device registered successfully after login');
     } catch (e) {
-      // 🔥 ADD THIS - Track device registration errors
       AnalyticsService.recordError(e, null);
-      print('Device registration failed after login: $e');
     }
   }
 

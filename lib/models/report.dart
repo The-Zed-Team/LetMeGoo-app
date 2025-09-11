@@ -35,17 +35,13 @@ class Report {
 
   factory Report.fromJson(Map<String, dynamic> json) {
     try {
-      print('📝 Parsing report: ${json['id']}');
-
       // Handle current_status which can be either String or Map
       String currentStatus;
       if (json['current_status'] is Map<String, dynamic>) {
         final statusMap = json['current_status'] as Map<String, dynamic>;
         currentStatus = statusMap['key']?.toString() ?? 'unknown';
-        print('  - Status from map: $currentStatus');
       } else {
         currentStatus = json['current_status']?.toString() ?? 'unknown';
-        print('  - Status from string: $currentStatus');
       }
 
       final report = Report(
@@ -76,11 +72,8 @@ class Report {
             [],
       );
 
-      print('✅ Successfully parsed report: ${report.id}');
       return report;
     } catch (e) {
-      print('❌ Error parsing report: $e');
-      print('📄 JSON data: $json');
       rethrow;
     }
   }
@@ -105,7 +98,7 @@ class Report {
       final month = _getMonthName(dateTime.month);
       final year = dateTime.year.toString();
 
-      return '$hour:$minute | ${day}${_getDaySuffix(dateTime.day)} $month $year';
+      return '$hour:$minute | $day${_getDaySuffix(dateTime.day)} $month $year';
     } catch (e) {
       return 'Unknown Time';
     }
@@ -168,10 +161,9 @@ class Report {
         'imageCount': images.length,
         'firstImage': images.isNotEmpty ? images.first.bestImage : null,
       };
-      print('🎨 Widget format for ${id}: $widgetData');
+
       return widgetData;
     } catch (e) {
-      print('❌ Error formatting widget data for ${id}: $e');
       return {
         'timeDate': 'Unknown Time',
         'status': 'Unknown',

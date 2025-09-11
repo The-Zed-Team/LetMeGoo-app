@@ -6,7 +6,6 @@ import 'package:letmegoo/constants/app_theme.dart';
 import 'package:letmegoo/models/login_method.dart';
 import 'package:letmegoo/services/auth_service.dart';
 import 'package:letmegoo/services/device_service.dart';
-import 'package:letmegoo/models/user_model.dart';
 import 'package:letmegoo/screens/login_page.dart';
 import 'package:letmegoo/screens/user_detail_reg_page.dart';
 import 'package:letmegoo/widgets/main_app.dart';
@@ -129,22 +128,33 @@ class _SplashScreenState extends State<SplashScreen>
       _updateLoadingText('Loading profile...');
 
       // Parse user data
-      final UserModel user = UserModel.fromJson(userData);
+      //final UserModel user = UserModel.fromJson(userData);
 
-      // Check if user has valid username and required data
-      if (user.fullname != "Unknown User" && user.fullname!.isNotEmpty) {
-        // User has complete profile, navigate to home
+      // 🔥 UPDATED: Check status field instead of fullname
+      final String? status = userData['status'] as String?;
+
+      // Navigate based on status field
+      if (status == 'profile_completed') {
+        // User has completed profile, navigate to main app
         _updateLoadingText('Welcome back!');
         await Future.delayed(const Duration(milliseconds: 500));
         _navigateToHome();
-      } else {
-        // User needs to complete profile, navigate to user details
+      } else if (status == 'registered') {
+        // User is registered but needs to complete profile
         _updateLoadingText('Setting up profile...');
         await Future.delayed(const Duration(milliseconds: 500));
         _navigateToUserDetails();
+      } else {
+        // Unknown status or missing status, navigate to login for safety
+        print('Unknown user status: $status');
+        _updateLoadingText('Something went wrong...');
+        await Future.delayed(const Duration(milliseconds: 1000));
+        _navigateToLogin();
       }
     } catch (e) {
       print('Authentication check error: $e');
+      // 🔥 Track authentication errors
+      AnalyticsService.recordError(e, null);
       _updateLoadingText('Something went wrong...');
       await Future.delayed(const Duration(milliseconds: 1000));
       // On error, navigate to login for safety
@@ -182,6 +192,8 @@ class _SplashScreenState extends State<SplashScreen>
           return LoginMethod.email;
         case 'google.com':
           return LoginMethod.google;
+        case 'apple.com':
+          return LoginMethod.apple;
       }
     }
 
@@ -197,7 +209,7 @@ class _SplashScreenState extends State<SplashScreen>
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
         transitionDuration: const Duration(milliseconds: 600),
-        pageBuilder: (_, __, ___) => LoginPage(),
+        pageBuilder: (_, __, ___) => const LoginPage(),
         transitionsBuilder:
             (_, animation, __, child) =>
                 FadeTransition(opacity: animation, child: child),

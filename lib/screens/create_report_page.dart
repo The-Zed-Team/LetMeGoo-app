@@ -423,8 +423,6 @@ class _CreateReportPageState extends ConsumerState<CreateReportPage> {
   // ENHANCED: Alternative camera method with better error handling
   Future<void> _openCamera() async {
     try {
-      print('🔍 Opening camera directly...');
-
       // Direct camera call with all parameters
       final XFile? photo = await _picker.pickImage(
         source: ImageSource.camera,
@@ -435,7 +433,6 @@ class _CreateReportPageState extends ConsumerState<CreateReportPage> {
       );
 
       if (photo != null) {
-        print('✅ Camera photo captured: ${photo.path}');
         final File imageFile = File(photo.path);
 
         // Verify file exists
@@ -445,15 +442,12 @@ class _CreateReportPageState extends ConsumerState<CreateReportPage> {
           });
           _showSnackBar('Photo captured and added!', isError: false);
         } else {
-          print('❌ File does not exist at path: ${photo.path}');
           _showSnackBar('Failed to save photo', isError: true);
         }
       } else {
-        print('❌ Camera returned null');
         _showSnackBar('Camera was cancelled or failed', isError: false);
       }
     } catch (e) {
-      print('💥 Camera error: $e');
       _showSnackBar('Camera error: $e', isError: true);
     }
   }
@@ -502,8 +496,6 @@ class _CreateReportPageState extends ConsumerState<CreateReportPage> {
   // ENHANCED: Pick image from specific source (camera or gallery)
   Future<void> _pickImageFromSource(ImageSource source) async {
     try {
-      print('🔍 Attempting to pick image from: ${source.name}');
-
       // For camera, be more explicit
       XFile? image;
 
@@ -516,7 +508,6 @@ class _CreateReportPageState extends ConsumerState<CreateReportPage> {
           imageQuality: 85,
           preferredCameraDevice: CameraDevice.rear, // Force rear camera
         );
-        print('📸 Camera result: ${image?.path ?? 'null'}');
       } else {
         // Gallery selection
         image = await _picker.pickImage(
@@ -525,11 +516,9 @@ class _CreateReportPageState extends ConsumerState<CreateReportPage> {
           maxHeight: 1080,
           imageQuality: 85,
         );
-        print('🖼️ Gallery result: ${image?.path ?? 'null'}');
       }
 
       if (image != null) {
-        print('✅ Image captured successfully: ${image.path}');
         setState(() {
           _images.add(File(image!.path));
         });
@@ -540,7 +529,6 @@ class _CreateReportPageState extends ConsumerState<CreateReportPage> {
           isError: false,
         );
       } else {
-        print('❌ No image selected/captured');
         _showSnackBar(
           source == ImageSource.camera
               ? 'Camera was cancelled'
@@ -549,7 +537,6 @@ class _CreateReportPageState extends ConsumerState<CreateReportPage> {
         );
       }
     } catch (e) {
-      print('💥 Error picking image: $e');
       String errorMessage =
           'Failed to ${source == ImageSource.camera ? 'capture' : 'select'} photo: $e';
       _showSnackBar(errorMessage, isError: true);
@@ -849,10 +836,6 @@ class _CreateReportPageState extends ConsumerState<CreateReportPage> {
           }
         },
         error: (error, stackTrace) {
-          print("Error submitting report: $error \n StackTrace: $stackTrace");
-          print("haii");
-          print(stackTrace);
-          print("hello");
           _showFullScreenDialog(
             "Error",
             "Failed to submit report. Please try again.",

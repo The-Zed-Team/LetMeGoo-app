@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:letmegoo/constants/app_theme.dart';
 import 'package:letmegoo/widgets/commonbutton.dart';
 import 'package:letmegoo/services/auth_service.dart';
+import 'package:letmegoo/services/analytics_service.dart';
 
 class PrivacyPreferencesPage extends StatefulWidget {
   final String currentPreference;
@@ -29,6 +30,9 @@ class _PrivacyPreferencesPageState extends State<PrivacyPreferencesPage> {
     super.initState();
     // Map the current preference to the UI value
     _selectedOption = _mapApiToUiValue(widget.currentPreference);
+
+    // Track screen view
+    AnalyticsService.logScreenView('privacy_preferences_page');
   }
 
   // Map API values to UI values
@@ -68,16 +72,57 @@ class _PrivacyPreferencesPageState extends State<PrivacyPreferencesPage> {
 
     try {
       final apiValue = _mapUiToApiValue(_selectedOption!);
+
+      // Track the privacy preference selection
+      await AnalyticsService.logEvent(
+        'privacy_preference_updated',
+        parameters: {
+          'preference': apiValue,
+          'is_onboarding': widget.isOnboarding,
+        },
+      );
+
+      // Step 1: Update privacy preference
       final result = await AuthService.updatePrivacyPreference(apiValue);
 
       if (result != null) {
+        // Step 2: If this is onboarding flow, also update user status
+        if (widget.isOnboarding) {
+          try {
+            final statusResult = await AuthService.updateUserStatus(
+              'profile_completed',
+            );
+
+            if (statusResult != null) {
+              // Track onboarding completion
+              await AnalyticsService.logEvent(
+                'onboarding_completed',
+                parameters: {
+                  'final_status': 'vehicle_added',
+                  'privacy_preference': apiValue,
+                },
+              );
+            } else {
+              throw Exception('Failed to update user status');
+            }
+          } catch (statusError) {
+            // Track the error but don't fail the entire flow
+            AnalyticsService.recordError(statusError, null);
+            throw Exception('Failed to complete onboarding: $statusError');
+          }
+        }
+
         // Success - call the callback with the new preference
         widget.onPreferenceChanged(apiValue);
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Privacy preference updated successfully'),
+              content: Text(
+                widget.isOnboarding
+                    ? 'Onboarding completed successfully!'
+                    : 'Privacy preference updated successfully',
+              ),
               backgroundColor: Colors.green,
             ),
           );
@@ -90,12 +135,16 @@ class _PrivacyPreferencesPageState extends State<PrivacyPreferencesPage> {
         }
       }
     } on ConnectivityException catch (e) {
+      AnalyticsService.recordError(e, null);
       _showErrorDialog('Connection Error', e.message);
     } on AuthException catch (e) {
+      AnalyticsService.recordError(e, null);
       _showErrorDialog('Authentication Error', e.message);
     } on ApiException catch (e) {
+      AnalyticsService.recordError(e, null);
       _showErrorDialog('Error', e.message);
     } catch (e) {
+      AnalyticsService.recordError(e, null);
       _showErrorDialog('Error', 'An unexpected error occurred: $e');
     } finally {
       if (mounted) {
@@ -312,7 +361,7 @@ class _PrivacyPreferencesPageState extends State<PrivacyPreferencesPage> {
                           ),
                         )
                         : CommonButton(
-                          text: "Done",
+                          text: widget.isOnboarding ? "Complete Setup" : "Done",
                           onTap: _updatePrivacyPreference,
                         ),
               ),

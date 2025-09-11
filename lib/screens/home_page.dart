@@ -383,12 +383,7 @@ class _ReportsContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print('🏗️ Building _ReportsContent with:');
-    print('  - Live by user: ${liveByUserFormatted.length}');
-    print('  - Live against user: ${liveAgainstUserFormatted.length}');
-    print('  - Solved by user: ${solvedByUserFormatted.length}');
-    print('  - Solved against user: ${solvedAgainstUserFormatted.length}');
-    print('  - Is refreshing: $isRefreshing');
+  
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
