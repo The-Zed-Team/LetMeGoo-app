@@ -248,16 +248,6 @@ class ParkingLocationService {
     }
   }
 
-  /// Check if user has internet connection
-  static Future<bool> _hasInternetConnection() async {
-    try {
-      final result = await InternetAddress.lookup('google.com');
-      return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
-    } on SocketException catch (_) {
-      return false;
-    }
-  }
-
   /// Dispose HTTP client
   static void dispose() {
     _httpClient.close();

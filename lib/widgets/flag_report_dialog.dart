@@ -1,8 +1,5 @@
-// lib/widgets/flag_report_dialog.dart - Dialog for flagging reports
-
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import '../constants/app_theme.dart';
 import '../services/flag_report_service.dart';
 
@@ -23,117 +20,12 @@ class _FlagReportDialogState extends State<FlagReportDialog> {
 
   File? _selectedImage;
   bool _isSubmitting = false;
-  final ImagePicker _picker = ImagePicker();
 
   @override
   void dispose() {
     _subjectController.dispose();
     _descriptionController.dispose();
     super.dispose();
-  }
-
-  Future<void> _pickImage() async {
-    try {
-      final XFile? image = await _picker.pickImage(
-        source: ImageSource.gallery,
-        maxWidth: 1920,
-        maxHeight: 1080,
-        imageQuality: 80,
-      );
-
-      if (image != null) {
-        setState(() {
-          _selectedImage = File(image.path);
-        });
-      }
-    } catch (e) {
-      _showSnackBar('Error selecting image: ${e.toString()}', isError: true);
-    }
-  }
-
-  Future<void> _takePhoto() async {
-    try {
-      final XFile? image = await _picker.pickImage(
-        source: ImageSource.camera,
-        maxWidth: 1920,
-        maxHeight: 1080,
-        imageQuality: 80,
-      );
-
-      if (image != null) {
-        setState(() {
-          _selectedImage = File(image.path);
-        });
-      }
-    } catch (e) {
-      _showSnackBar('Error taking photo: ${e.toString()}', isError: true);
-    }
-  }
-
-  void _showImageSourceDialog() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (BuildContext context) {
-        return Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          child: SafeArea(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const SizedBox(height: 12),
-                Container(
-                  width: 50,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    children: [
-                      Text('Add Evidence Photo', style: AppFonts.bold18()),
-                      const SizedBox(height: 20),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _ImageSourceOption(
-                              icon: Icons.photo_library,
-                              label: 'Gallery',
-                              onTap: () {
-                                Navigator.pop(context);
-                                _pickImage();
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: _ImageSourceOption(
-                              icon: Icons.camera_alt,
-                              label: 'Camera',
-                              onTap: () {
-                                Navigator.pop(context);
-                                _takePhoto();
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
   }
 
   Future<void> _submitFlag() async {
@@ -470,43 +362,6 @@ class _FlagReportDialogState extends State<FlagReportDialog> {
                   ),
                 ],
               ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ImageSourceOption extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-
-  const _ImageSourceOption({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 20),
-        decoration: BoxDecoration(
-          color: AppColors.primary.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.primary.withOpacity(0.3)),
-        ),
-        child: Column(
-          children: [
-            Icon(icon, size: 32, color: AppColors.primary),
-            const SizedBox(height: 8),
-            Text(
-              label,
-              style: AppFonts.semiBold14().copyWith(color: AppColors.primary),
             ),
           ],
         ),
