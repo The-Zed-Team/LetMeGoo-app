@@ -1,3 +1,4 @@
+// lib/providers/vehicle_provider.dart - Updated version
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:letmegoo/services/auth_service.dart';
 import 'package:letmegoo/models/vehicle.dart';
@@ -43,7 +44,10 @@ class VehicleNotifier extends StateNotifier<VehicleState> {
 
   Future<void> loadVehicles({bool forceRefresh = false}) async {
     // Avoid redundant calls if data is fresh and not forcing refresh
-    if (!forceRefresh && state.vehicles.isNotEmpty && !state.isDataStale && !state.isLoading) {
+    if (!forceRefresh &&
+        state.vehicles.isNotEmpty &&
+        !state.isDataStale &&
+        !state.isLoading) {
       return;
     }
 
@@ -99,35 +103,41 @@ class VehicleNotifier extends StateNotifier<VehicleState> {
     if (vehicleType is String) {
       return vehicleType;
     } else if (vehicleType is Map<String, dynamic>) {
-      return vehicleType['value']?.toString() ??
-          vehicleType['key']?.toString() ??
-          'Unknown';
-    } else {
-      return vehicleType.toString();
+      return vehicleType['value']?.toString() ?? 'Unknown';
     }
+
+    return 'Unknown';
   }
-
-  // Get vehicle by ID
-  Vehicle? getVehicleById(String vehicleId) {
-    try {
-      return state.vehicles.firstWhere((vehicle) => vehicle.id == vehicleId);
-    } catch (e) {
-      return null;
-    }
-  }
-
-  // Get vehicles count
-  int get vehicleCount => state.vehicles.length;
-
-  // Check if user has any verified vehicles
-  bool get hasVerifiedVehicles => state.vehicles.any((vehicle) => vehicle.isVerified);
-
-  // Get only verified vehicles
-  List<Vehicle> get verifiedVehicles => state.vehicles.where((vehicle) => vehicle.isVerified).toList();
 }
 
-final vehicleProvider = StateNotifierProvider<VehicleNotifier, VehicleState>((
-  ref,
-) {
-  return VehicleNotifier();
+// Vehicle provider instance
+final vehicleProvider = StateNotifierProvider<VehicleNotifier, VehicleState>(
+  (ref) => VehicleNotifier(),
+);
+
+// Alternative: AsyncValue-based provider for better loading states
+final vehiclesAsyncProvider = FutureProvider<List<Vehicle>>((ref) async {
+  return await AuthService.getUserVehicles();
+});
+
+// You might also want to add these convenience providers:
+
+// Provider to get just the vehicles list
+final vehiclesListProvider = Provider<List<Vehicle>>((ref) {
+  return ref.watch(vehicleProvider).vehicles;
+});
+
+// Provider to check if vehicles are loading
+final vehiclesLoadingProvider = Provider<bool>((ref) {
+  return ref.watch(vehicleProvider).isLoading;
+});
+
+// Provider to get vehicle error message
+final vehicleErrorProvider = Provider<String?>((ref) {
+  return ref.watch(vehicleProvider).errorMessage;
+});
+
+// Provider to check if user has any vehicles
+final hasVehiclesProvider = Provider<bool>((ref) {
+  return ref.watch(vehicleProvider).vehicles.isNotEmpty;
 });
