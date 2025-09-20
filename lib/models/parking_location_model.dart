@@ -4,7 +4,7 @@ class ParkingLocation {
   final String? vehicleId;
   final String vehicleNumber;
   final UserInfo user;
-  final Vehicle? vehicle;
+  final VehicleInfo? vehicle; // Use VehicleInfo instead of Vehicle
   final double latitude;
   final double longitude;
   final String? notes;
@@ -35,7 +35,9 @@ class ParkingLocation {
       vehicleNumber: json['vehicle_number'] ?? '',
       user: UserInfo.fromJson(json['user'] ?? {}),
       vehicle:
-          json['vehicle'] != null ? Vehicle.fromJson(json['vehicle']) : null,
+          json['vehicle'] != null
+              ? VehicleInfo.fromJson(json['vehicle'])
+              : null,
       latitude: (json['latitude'] ?? 0.0).toDouble(),
       longitude: (json['longitude'] ?? 0.0).toDouble(),
       notes: json['notes'],
@@ -66,8 +68,7 @@ class ParkingLocation {
   // Helper methods
   String get displayNotes => notes ?? 'No notes provided';
   bool get hasImage => image != null;
-  String? get imageUrl =>
-      image?.medium ?? image?.original; // Prefer medium, fallback to original
+  String? get imageUrl => image?.medium ?? image?.original;
   bool get isPublic => visibility == 'public';
 
   String get formattedDate {
@@ -86,6 +87,67 @@ class ParkingLocation {
   }
 }
 
+// New VehicleInfo class for the nested vehicle object
+class VehicleInfo {
+  final String id;
+  final String? name;
+  final String vehicleNumber;
+  final String? fuelType;
+  final VehicleTypeInfo? vehicleType;
+  final bool isVerified;
+
+  VehicleInfo({
+    required this.id,
+    this.name,
+    required this.vehicleNumber,
+    this.fuelType,
+    this.vehicleType,
+    required this.isVerified,
+  });
+
+  factory VehicleInfo.fromJson(Map<String, dynamic> json) {
+    return VehicleInfo(
+      id: json['id'] ?? '',
+      name: json['name'],
+      vehicleNumber: json['vehicle_number'] ?? '',
+      fuelType: json['fuel_type'],
+      vehicleType:
+          json['vehicle_type'] != null
+              ? VehicleTypeInfo.fromJson(json['vehicle_type'])
+              : null,
+      isVerified: json['is_verified'] == true || json['is_verified'] == 'true',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'vehicle_number': vehicleNumber,
+      'fuel_type': fuelType,
+      'vehicle_type': vehicleType?.toJson(),
+      'is_verified': isVerified,
+    };
+  }
+}
+
+// VehicleTypeInfo class for the nested vehicle_type object
+class VehicleTypeInfo {
+  final String key;
+  final String value;
+
+  VehicleTypeInfo({required this.key, required this.value});
+
+  factory VehicleTypeInfo.fromJson(Map<String, dynamic> json) {
+    return VehicleTypeInfo(key: json['key'] ?? '', value: json['value'] ?? '');
+  }
+
+  Map<String, dynamic> toJson() {
+    return {'key': key, 'value': value};
+  }
+}
+
+// Keep the rest of your existing classes (ImageUrls, UserInfo, etc.)
 class ImageUrls {
   final String? thumbnail;
   final String? medium;
@@ -112,7 +174,6 @@ class ImageUrls {
     };
   }
 
-  // Helper to get the best available image URL
   String? get bestUrl => medium ?? large ?? original ?? thumbnail;
 }
 
@@ -160,52 +221,13 @@ class UserInfo {
   }
 }
 
-class Vehicle {
-  final String id;
-  final String vehicleNumber;
-  final String? vehicleType;
-  final String? model;
-  final String? year;
-  final String? color;
-
-  Vehicle({
-    required this.id,
-    required this.vehicleNumber,
-    this.vehicleType,
-    this.model,
-    this.year,
-    this.color,
-  });
-
-  factory Vehicle.fromJson(Map<String, dynamic> json) {
-    return Vehicle(
-      id: json['id'] ?? '',
-      vehicleNumber: json['vehicle_number'] ?? '',
-      vehicleType: json['vehicle_type'],
-      model: json['model'],
-      year: json['year'],
-      color: json['color'],
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'vehicle_number': vehicleNumber,
-      'vehicle_type': vehicleType,
-      'model': model,
-      'year': year,
-      'color': color,
-    };
-  }
-}
-
+// Keep your existing request and response classes unchanged
 class ParkingLocationRequest {
   final String vehicleNumber;
   final double latitude;
   final double longitude;
   final String? notes;
-  final String? imagePath; // Local file path
+  final String? imagePath;
   final String visibility;
 
   ParkingLocationRequest({

@@ -6,6 +6,7 @@ import 'package:letmegoo/constants/app_theme.dart';
 import 'package:letmegoo/models/vehicle.dart';
 import 'package:letmegoo/models/vehicle_type.dart';
 import 'package:letmegoo/services/auth_service.dart';
+import 'package:letmegoo/widgets/vechile_already_register_dialog.dart';
 import 'labeledtextfield.dart';
 
 class Editvehicledialog extends StatefulWidget {
@@ -366,7 +367,6 @@ class _EditvehicledialogState extends State<Editvehicledialog> {
     });
 
     try {
-      // Call the actual API to update the vehicle on the server
       final updatedVehicle = await AuthService.updateVehicle(
         vehicleId: widget.vehicle.id,
         vehicleNumber: _registrationController.text.trim(),
@@ -379,36 +379,55 @@ class _EditvehicledialogState extends State<Editvehicledialog> {
             _brandController.text.trim().isNotEmpty
                 ? _brandController.text.trim()
                 : null,
-        fuelType: selectedFuelType, // No need to convert to lowercase anymore
+        fuelType: selectedFuelType,
         image: _selectedImage,
       );
 
       if (updatedVehicle != null) {
-        // Call the callback to update the UI
         widget.onEdit(updatedVehicle);
         _showSnackBar('Vehicle updated successfully!', isError: false);
-
-        // Don't close the dialog here - let the parent handle navigation
-        // The parent (my_vehicles_page.dart) will call Navigator.pop(context)
       } else {
         _showSnackBar('Failed to update vehicle');
       }
-    } on SocketException {
-      _showSnackBar('Network error. Please check your connection.');
-    } on TimeoutException {
-      _showSnackBar('Request timeout. Please try again.');
     } catch (e) {
-      // Handle other errors
+      // Check if the error is an integrity error for duplicate vehicle
       String errorMessage = e.toString();
-      if (errorMessage.contains('Exception: ')) {
-        errorMessage = errorMessage.replaceAll('Exception: ', '');
+
+      if (errorMessage.contains('INTEGRITY_ERROR') ||
+          errorMessage.contains('already registered') ||
+          errorMessage.contains('Integrity Error')) {
+        // Close current dialog first
+        Navigator.of(context).pop();
+
+        // Show the specialized dialog for duplicate vehicle
+        VehicleAlreadyRegisteredDialog.show(
+          context,
+          vehicleNumber: _registrationController.text.trim(),
+          onContactSupport: () {
+            _contactSupport();
+          },
+        );
+      } else {
+        if (errorMessage.contains('Exception: ')) {
+          errorMessage = errorMessage.replaceAll('Exception: ', '');
+        }
+        _showSnackBar('Error: $errorMessage');
       }
-      _showSnackBar('Error: $errorMessage');
     } finally {
       setState(() {
         _isLoading = false;
       });
     }
+  }
+
+  void _contactSupport() {
+    // Implement your support contact logic
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Redirecting to support...'),
+        backgroundColor: AppColors.darkGreen,
+      ),
+    );
   }
 
   void _showSnackBar(String message, {bool isError = true}) {

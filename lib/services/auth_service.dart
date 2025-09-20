@@ -458,7 +458,7 @@ class AuthService {
 
       final streamedResponse = await request.send().timeout(timeoutDuration);
       final response = await http.Response.fromStream(streamedResponse);
-
+      print(response.body);
       if (response.statusCode == 200 || response.statusCode == 201) {
         final Map<String, dynamic> vehicleData = json.decode(response.body);
         return Vehicle.fromJson(vehicleData);

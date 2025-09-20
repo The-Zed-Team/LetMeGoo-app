@@ -8,6 +8,7 @@ import 'package:letmegoo/utils/core_utils.dart';
 import 'package:letmegoo/widgets/commonbutton.dart';
 import 'package:letmegoo/services/auth_service.dart';
 import 'package:letmegoo/models/vehicle_type.dart';
+import 'package:letmegoo/widgets/vechile_already_register_dialog.dart';
 import 'vehicle_add_success_page.dart';
 
 class AddVehiclePage extends StatefulWidget {
@@ -220,12 +221,50 @@ class _AddVehiclePageState extends State<AddVehiclePage> {
         );
       }
     } catch (e) {
-      _showSnackBar('Error: ${e.toString()}', isError: true);
+      // Check if the error is an integrity error for duplicate vehicle
+      String errorMessage = e.toString();
+
+      // Check if it's an integrity error response
+      if (errorMessage.contains('INTEGRITY_ERROR') ||
+          errorMessage.contains('already registered') ||
+          errorMessage.contains('Integrity Error')) {
+        // Show the specialized dialog for duplicate vehicle
+        VehicleAlreadyRegisteredDialog.show(
+          context,
+          vehicleNumber: _registrationController.text.trim(),
+          onContactSupport: () {
+            // Implement your contact support functionality here
+            // This could navigate to a support page, open email, etc.
+            _contactSupport();
+          },
+        );
+      } else {
+        // Show regular error for other types of errors
+        _showSnackBar('Error: $errorMessage', isError: true);
+      }
     } finally {
       setState(() {
         _isLoading = false;
       });
     }
+  }
+
+  // Add this method to handle support contact
+  void _contactSupport() {
+    // Implement your support contact logic here
+    // Examples:
+    // - Navigate to support page
+    // - Open email client
+    // - Show contact information
+    // - Open chat support
+
+    _showSnackBar('Redirecting to support...', isError: false);
+
+    // Example: You could navigate to a support page
+    // Navigator.push(
+    //   context,
+    //   MaterialPageRoute(builder: (context) => SupportPage()),
+    // );
   }
 
   void _showSnackBar(String message, {required bool isError}) {

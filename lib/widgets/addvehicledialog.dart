@@ -6,6 +6,7 @@ import 'package:letmegoo/constants/app_theme.dart';
 import 'package:letmegoo/models/vehicle.dart';
 import 'package:letmegoo/models/vehicle_type.dart';
 import 'package:letmegoo/services/auth_service.dart';
+import 'package:letmegoo/widgets/vechile_already_register_dialog.dart';
 import 'labeledtextfield.dart';
 
 class Addvehicledialog extends StatefulWidget {
@@ -114,12 +115,41 @@ class _AddvehicledialogState extends State<Addvehicledialog> {
         _showSnackBar('Failed to add vehicle');
       }
     } catch (e) {
-      _showSnackBar('Error: ${e.toString()}');
+      // Check if the error is an integrity error for duplicate vehicle
+      String errorMessage = e.toString();
+
+      if (errorMessage.contains('INTEGRITY_ERROR') ||
+          errorMessage.contains('already registered') ||
+          errorMessage.contains('Integrity Error')) {
+        // Close current dialog first
+        Navigator.of(context).pop();
+
+        // Show the specialized dialog for duplicate vehicle
+        VehicleAlreadyRegisteredDialog.show(
+          context,
+          vehicleNumber: _registrationController.text.trim(),
+          onContactSupport: () {
+            _contactSupport();
+          },
+        );
+      } else {
+        _showSnackBar('Error: $errorMessage');
+      }
     } finally {
       setState(() {
         _isLoading = false;
       });
     }
+  }
+
+  void _contactSupport() {
+    // Implement your support contact logic
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Redirecting to support...'),
+        backgroundColor: AppColors.darkGreen,
+      ),
+    );
   }
 
   bool _validateForm() {

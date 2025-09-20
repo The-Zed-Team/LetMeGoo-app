@@ -79,7 +79,7 @@ class Report {
   }
 
   // Helper methods for widget compatibility
-  String get formattedTimeDate => _formatDateTime(createdAt.toIso8601String());
+  String get formattedTimeDate => _formatDateTime(createdAt.toString());
   String get displayStatus => isClosed ? 'Solved' : 'Active';
   String get displayLocation => location ?? 'Unknown Location';
   String get displayMessage =>
@@ -91,7 +91,14 @@ class Report {
     if (dateTimeStr == null) return 'Unknown Time';
 
     try {
-      final dateTime = DateTime.parse(dateTimeStr);
+      // Parse the datetime string which includes timezone info
+      DateTime dateTime = DateTime.parse(dateTimeStr);
+
+      // Convert to local timezone if it's in UTC
+      if (dateTime.isUtc) {
+        dateTime = dateTime.toLocal();
+      }
+
       final hour = dateTime.hour.toString().padLeft(2, '0');
       final minute = dateTime.minute.toString().padLeft(2, '0');
       final day = dateTime.day.toString();
