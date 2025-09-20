@@ -279,7 +279,7 @@ class _AddParkingLocationPageState
           icon: Icon(Icons.arrow_back, color: AppColors.textPrimary),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text('Save Parking Area', style: AppFonts.semiBold20()),
+        title: Text('Navigate to your vehicle', style: AppFonts.semiBold20()),
         centerTitle: true,
       ),
       body: Form(
@@ -657,7 +657,7 @@ class _AddParkingLocationPageState
                 ),
               )
               : CommonButton(
-                text: 'Save Parking Area',
+                text: "⁠Mark your parking spot",
                 onTap: () => _submitForm(),
               ),
     );

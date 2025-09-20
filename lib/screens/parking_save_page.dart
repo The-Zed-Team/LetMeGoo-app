@@ -240,7 +240,7 @@ class _ParkingSavePageState extends ConsumerState<ParkingSavePage>
         elevation: 0,
         leading: const BackButton(color: AppColors.textPrimary),
 
-        title: Text('Saved Parking Areas', style: AppFonts.semiBold20()),
+        title: Text('Navigate to your vehicle', style: AppFonts.semiBold20()),
         centerTitle: true,
       ),
       body: MediaQuery.removePadding(
@@ -802,7 +802,7 @@ class _EmptyWidget extends StatelessWidget {
               ),
               const SizedBox(height: 24),
               Text(
-                'No Parking Areas Saved',
+                "Sorry, you didn't marked any parking",
                 style: AppFonts.bold20().copyWith(color: Colors.grey[800]),
                 textAlign: TextAlign.center,
               ),
@@ -819,7 +819,7 @@ class _EmptyWidget extends StatelessWidget {
                 onPressed: onAdd,
                 icon: const Icon(Icons.add_location, color: Colors.white),
                 label: const Text(
-                  'Add Parking Area',
+                  "⁠Mark your parking spot",
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
