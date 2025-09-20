@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:letmegoo/screens/create_report_page.dart';
 import 'package:letmegoo/screens/home_page.dart';
 import 'package:letmegoo/screens/profile_page.dart';
+import 'package:letmegoo/screens/parking_save_page.dart';
 import 'package:letmegoo/services/analytics_service.dart';
 
 class MainApp extends StatefulWidget {
@@ -13,6 +14,7 @@ class MainApp extends StatefulWidget {
 
 class _MainAppState extends State<MainApp> {
   int _currentIndex = 0;
+  
   @override
   void initState() {
     super.initState();
@@ -30,9 +32,23 @@ class _MainAppState extends State<MainApp> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder:
-            (context) =>
-                HomePage(onNavigate: _onNavigate, onAddPressed: _onAddPressed),
+        builder: (context) => HomePage(
+          onNavigate: _onNavigate, 
+          onAddPressed: _onAddPressed
+        ),
+      ),
+    );
+  }
+
+  void _onParkingPressed() {
+    // Navigate to ParkingSavePage
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ParkingSavePage(
+          onNavigate: _onNavigate,
+          onAddPressed: _onAddPressed,
+        ),
       ),
     );
   }
@@ -45,16 +61,19 @@ class _MainAppState extends State<MainApp> {
         return CreateReportPage(
           onNavigate: _onNavigate,
           onAddPressed: _onAddPressed,
+          onParkingPressed: _onParkingPressed,
         );
       case 1:
         return ProfilePage(
           onNavigate: _onNavigate,
           onAddPressed: _onAddPressed,
+          onParkingPressed: _onParkingPressed,
         );
       default:
         return CreateReportPage(
           onNavigate: _onNavigate,
           onAddPressed: _onAddPressed,
+          onParkingPressed: _onParkingPressed,
         );
     }
   }

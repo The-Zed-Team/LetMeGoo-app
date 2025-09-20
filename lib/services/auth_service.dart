@@ -722,14 +722,20 @@ class AuthService {
   static void searchVehiclesDebounced(
     String query,
     Function(List<VehicleSearchResult>) onSuccess,
-    Function(String) onError,
-  ) {
+    Function(String) onError, {
+    double? latitude,
+    double? longitude,
+  }) {
     // Cancel previous timer
     cancelDebouncedSearch();
 
     _debounceTimer = Timer(_debounceDuration, () async {
       try {
-        final results = await _searchVehicles(query);
+        final results = await _searchVehicles(
+          query,
+          latitude: latitude,
+          longitude: longitude,
+        );
         onSuccess(results);
       } catch (e) {
         onError(e.toString());
@@ -744,7 +750,11 @@ class AuthService {
   }
 
   /// Internal vehicle search method
-  static Future<List<VehicleSearchResult>> _searchVehicles(String query) async {
+  static Future<List<VehicleSearchResult>> _searchVehicles(
+    String query, {
+    double? latitude,
+    double? longitude,
+  }) async {
     try {
       if (!await _hasInternetConnection()) {
         throw ConnectivityException('No internet connection');
@@ -752,18 +762,34 @@ class AuthService {
 
       final headers = await _getAuthHeaders();
 
-      final uri = Uri.parse('$baseUrl/vehicle/search').replace(
-        queryParameters: {
-          'vehicle_number': query.trim(),
-          'limit': '10',
-          'offset': '0',
-        },
-      );
-      print(uri);
+      // Build query parameters - starts with required ones
+      final queryParameters = {
+        'vehicle_number': query.trim(),
+        'limit': '10',
+        'offset': '0',
+      };
+
+      // Only add location parameters if they're provided
+      if (latitude != null) {
+        queryParameters['latitude'] = latitude.toString();
+      }
+      if (longitude != null) {
+        queryParameters['longitude'] = longitude.toString();
+      }
+
+      final uri = Uri.parse(
+        '$baseUrl/vehicle/search',
+      ).replace(queryParameters: queryParameters);
+
+      print('Search URI: $uri');
+
       final response = await _httpClient
           .get(uri, headers: headers)
           .timeout(timeoutDuration);
-      print(response);
+
+      print('Search Response Status: ${response.statusCode}');
+      print('Search Response Body: ${response.body}');
+
       if (response.statusCode == 200) {
         final List<dynamic> jsonList = json.decode(response.body);
         return jsonList
@@ -783,6 +809,19 @@ class AuthService {
       }
       throw ApiException('Vehicle search failed: $e');
     }
+  }
+
+  // Direct vehicle search method (if you need synchronous access)
+  static Future<List<VehicleSearchResult>> searchVehicles(
+    String query, {
+    double? latitude,
+    double? longitude,
+  }) async {
+    return await _searchVehicles(
+      query,
+      latitude: latitude,
+      longitude: longitude,
+    );
   }
 
   /// Report a vehicle for blocking

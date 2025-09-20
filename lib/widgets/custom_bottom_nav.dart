@@ -5,18 +5,19 @@ class CustomBottomNav extends StatelessWidget {
   final int currentIndex;
   final Function(int) onTap;
   final VoidCallback onInformPressed;
+  final VoidCallback onParkingPressed;
 
   const CustomBottomNav({
     super.key,
     required this.currentIndex,
     required this.onTap,
     required this.onInformPressed,
+    required this.onParkingPressed,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      // Remove fixed height and let it size naturally
       width: double.infinity,
       decoration: BoxDecoration(
         color: AppColors.white,
@@ -28,9 +29,8 @@ class CustomBottomNav extends StatelessWidget {
           ),
         ],
       ),
-      // Add SafeArea inside the container instead of wrapping it
       child: SafeArea(
-        top: false, // Don't add padding to the top
+        top: false,
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
           child: Row(
@@ -49,6 +49,13 @@ class CustomBottomNav extends StatelessWidget {
                 unselectedIcon: Icons.bar_chart_outlined,
                 label: 'Reports',
                 onTap: onInformPressed,
+              ),
+              _buildNavItem(
+                index: 3,
+                selectedIcon: Icons.local_parking,
+                unselectedIcon: Icons.local_parking_outlined,
+                label: 'Parking',
+                onTap: onParkingPressed,
               ),
               _buildNavItem(
                 index: 1,

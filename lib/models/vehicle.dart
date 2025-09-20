@@ -1,3 +1,5 @@
+import 'package:letmegoo/models/vehicle_search_result.dart';
+
 enum PrivacyPreference { public, private, anonymous }
 
 class VehicleOwner {
@@ -120,7 +122,24 @@ class Vehicle {
       rethrow;
     }
   }
-
+  // In lib/models/vehicle.dart
+  factory Vehicle.fromSearchResult(VehicleSearchResult searchResult) {
+    return Vehicle(
+      id: searchResult.id,
+      name: searchResult.name ?? '', // VehicleSearchResult.name is nullable
+      vehicleNumber: searchResult.vehicleNumber,
+      owner: VehicleOwner.empty(), // SearchResult doesn't include owner info
+      fuelType: searchResult.fuelType ?? '',
+      vehicleType:
+          searchResult.vehicleType?.value ??
+          '', // Extract value from VehicleTypeInfo
+      brand: null, // Not available in search result
+      image: null, // Not available in search result
+      isVerified: searchResult.isVerified,
+      createdAt: DateTime.now(), // Use current time as fallback
+      updatedAt: null,
+    );
+  }
   // Helper getters
   String get displayName => name.isNotEmpty ? name : vehicleNumber;
   String get ownerName => owner.fullname;

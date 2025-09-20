@@ -4,6 +4,7 @@ import 'package:letmegoo/constants/app_theme.dart';
 import 'package:letmegoo/screens/about_us_page.dart';
 import 'package:letmegoo/screens/edit_profile_page.dart';
 import 'package:letmegoo/screens/my_vehicles_page.dart';
+import 'package:letmegoo/screens/parking_save_page.dart';
 import 'package:letmegoo/screens/privacy_policy_page.dart';
 import 'package:letmegoo/screens/privacy_preferences_page.dart';
 import 'package:letmegoo/providers/user_provider.dart';
@@ -21,11 +22,13 @@ import '../widgets/Customdivider.dart';
 class ProfilePage extends ConsumerStatefulWidget {
   final Function(int) onNavigate;
   final VoidCallback onAddPressed;
+  final VoidCallback? onParkingPressed; // Add this line
 
   const ProfilePage({
     super.key,
     required this.onNavigate,
     required this.onAddPressed,
+    this.onParkingPressed, // Add this line
   });
 
   @override
@@ -536,6 +539,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                 currentIndex: 1, // This was the issue! Changed from 0 to 1
                 onTap: widget.onNavigate,
                 onInformPressed: widget.onAddPressed,
+                onParkingPressed:
+                    widget.onParkingPressed ?? () {}, // Add this line
               ),
             ],
           ),

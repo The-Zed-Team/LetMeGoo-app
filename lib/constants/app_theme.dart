@@ -159,6 +159,8 @@ class AppFonts {
     fontWeight: FontWeight.w700,
     color: color ?? AppColors.textPrimary,
   );
+
+  static medium12() {}
 }
 
 class AppTheme {

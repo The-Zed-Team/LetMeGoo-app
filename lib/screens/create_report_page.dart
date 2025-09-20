@@ -54,17 +54,51 @@ class ReportStateNotifier
 class VehicleSearchNotifier extends StateNotifier<AsyncValue<Vehicle?>> {
   VehicleSearchNotifier() : super(const AsyncValue.data(null));
 
-  Future<void> searchVehicle(String registrationNumber) async {
+  Future<void> searchVehicle(
+    String registrationNumber, {
+    double? latitude,
+    double? longitude,
+  }) async {
     state = const AsyncValue.loading();
     try {
-      final vehicle = await AuthService.getVehicleByRegistrationNumber(
+      print('🔍 Starting vehicle search for: $registrationNumber');
+      if (latitude != null && longitude != null) {
+        print('📍 Using location: $latitude, $longitude');
+      } else {
+        print('📍 No location provided for search');
+      }
+
+      // Use the new search method that returns a list
+      final results = await AuthService.searchVehicles(
         registrationNumber,
+        latitude: latitude,
+        longitude: longitude,
       );
 
-      if (mounted) {
-        state = AsyncValue.data(vehicle);
+      print('📊 Search results count: ${results.length}');
+
+      if (results.isNotEmpty) {
+        // Convert VehicleSearchResult to Vehicle if needed
+        // You might need to adapt this based on your Vehicle model
+        final firstResult = results.first;
+        print('✅ Found vehicle: ${firstResult.toString()}');
+
+        // Create Vehicle object from search result
+        final vehicle = Vehicle.fromSearchResult(
+          firstResult,
+        ); // You'll need this method
+
+        if (mounted) {
+          state = AsyncValue.data(vehicle);
+        }
+      } else {
+        print('❌ No vehicles found');
+        if (mounted) {
+          state = const AsyncValue.data(null);
+        }
       }
     } catch (e) {
+      print('❌ Vehicle search error: $e');
       if (mounted) {
         state = AsyncValue.error(e, StackTrace.current);
       }
@@ -97,12 +131,14 @@ class CreateReportPage extends ConsumerStatefulWidget {
   final String? registrationNumber;
   final Function(int)? onNavigate;
   final VoidCallback? onAddPressed;
+  final VoidCallback? onParkingPressed; // Add this line
 
   const CreateReportPage({
     super.key,
     this.registrationNumber,
     this.onNavigate,
     this.onAddPressed,
+    this.onParkingPressed, // Add this line
   });
 
   @override
@@ -669,7 +705,7 @@ class _CreateReportPageState extends ConsumerState<CreateReportPage> {
     );
   }
 
-  void _handleSearchTap() {
+  void _handleSearchTap() async {
     final regNumber = regNumberController.text.trim();
 
     if (regNumber.isEmpty) {
@@ -682,7 +718,36 @@ class _CreateReportPageState extends ConsumerState<CreateReportPage> {
       return;
     }
 
-    ref.read(vehicleSearchProvider.notifier).searchVehicle(regNumber);
+    print('🚀 Initiating vehicle search for: $regNumber');
+
+    // Get current location for search
+    Position? position;
+    try {
+      final locationResult = await _locationService.getCurrentLocation(
+        accuracy: LocationAccuracy.medium,
+        timeLimit: const Duration(seconds: 10),
+      );
+
+      if (locationResult.isSuccess && locationResult.position != null) {
+        position = locationResult.position;
+        print(
+          '📍 Got location for search: ${position!.latitude}, ${position.longitude}',
+        );
+      } else {
+        print('📍 No location available for search');
+      }
+    } catch (e) {
+      print('⚠️ Location error for search: $e');
+    }
+
+    // Search with or without location
+    ref
+        .read(vehicleSearchProvider.notifier)
+        .searchVehicle(
+          regNumber,
+          latitude: position?.latitude,
+          longitude: position?.longitude,
+        );
   }
 
   void _handleInformTap() async {
@@ -1358,6 +1423,8 @@ class _CreateReportPageState extends ConsumerState<CreateReportPage> {
                     currentIndex: 0,
                     onTap: widget.onNavigate!,
                     onInformPressed: widget.onAddPressed ?? () {},
+                    onParkingPressed:
+                        widget.onParkingPressed ?? () {}, // Add this line
                   ),
               ],
             ),
