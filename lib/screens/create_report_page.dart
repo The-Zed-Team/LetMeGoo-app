@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:letmegoo/constants/app_images.dart';
 import 'package:letmegoo/constants/app_theme.dart';
+import 'package:letmegoo/screens/home_page.dart';
 import 'package:letmegoo/screens/owner_not_found_page.dart';
 import 'package:letmegoo/services/auth_service.dart';
 import 'package:letmegoo/services/location_service.dart';
@@ -807,6 +808,14 @@ class _CreateReportPageState extends ConsumerState<CreateReportPage> {
     ref.read(reportStateProvider.notifier).reportVehicle(request);
   }
 
+  void _handleReportsButtonTap() {
+    // TODO: Navigate to reports/alerts page
+    // You can add navigation logic here
+    Navigator.of(
+      context,
+    ).pushReplacement(MaterialPageRoute(builder: (_) => HomePage()));
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -898,6 +907,69 @@ class _CreateReportPageState extends ConsumerState<CreateReportPage> {
           children: [
             Column(
               children: [
+                Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: screenWidth * 0.05,
+                    vertical: screenHeight * 0.015,
+                  ),
+                  child: Row(
+                    children: [
+                      Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: _handleReportsButtonTap,
+                          borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: screenWidth * 0.035,
+                              vertical: screenHeight * 0.012,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: AppColors.primary.withOpacity(0.3),
+                                width: 1,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.notifications_active_outlined,
+                                  color: AppColors.primary,
+                                  size:
+                                      screenWidth *
+                                      (isLargeScreen
+                                          ? 0.02
+                                          : isTablet
+                                          ? 0.03
+                                          : 0.05),
+                                ),
+                                SizedBox(width: screenWidth * 0.02),
+                                Text(
+                                  'Reports',
+                                  style: TextStyle(
+                                    fontSize:
+                                        screenWidth *
+                                        (isLargeScreen
+                                            ? 0.014
+                                            : isTablet
+                                            ? 0.022
+                                            : 0.035),
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.primary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      const Spacer(),
+                    ],
+                  ),
+                ),
                 Expanded(
                   child: SingleChildScrollView(
                     padding: EdgeInsets.symmetric(
