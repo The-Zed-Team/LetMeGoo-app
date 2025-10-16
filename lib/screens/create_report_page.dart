@@ -7,7 +7,6 @@ import 'package:letmegoo/constants/app_images.dart';
 import 'package:letmegoo/constants/app_theme.dart';
 import 'package:letmegoo/screens/home_page.dart';
 import 'package:letmegoo/screens/owner_not_found_page.dart';
-import 'package:letmegoo/screens/shops_and_services_page.dart';
 import 'package:letmegoo/services/auth_service.dart';
 import 'package:letmegoo/services/location_service.dart';
 import 'package:letmegoo/widgets/commonButton.dart';
@@ -812,9 +811,7 @@ class _CreateReportPageState extends ConsumerState<CreateReportPage> {
   void _handleReportsButtonTap() {
     // TODO: Navigate to reports/alerts page
     // You can add navigation logic here
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (_) => ShopsAndServicesPage()));
+    Navigator.of(context).push(MaterialPageRoute(builder: (_) => HomePage()));
   }
 
   @override

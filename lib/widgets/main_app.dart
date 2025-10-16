@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:letmegoo/screens/create_report_page.dart';
-import 'package:letmegoo/screens/home_page.dart';
 import 'package:letmegoo/screens/profile_page.dart';
 import 'package:letmegoo/screens/parking_save_page.dart';
+import 'package:letmegoo/screens/shops_and_services_page.dart';
 import 'package:letmegoo/services/analytics_service.dart';
 
 class MainApp extends StatefulWidget {
@@ -14,7 +14,7 @@ class MainApp extends StatefulWidget {
 
 class _MainAppState extends State<MainApp> {
   int _currentIndex = 0;
-  
+
   @override
   void initState() {
     super.initState();
@@ -32,10 +32,11 @@ class _MainAppState extends State<MainApp> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => HomePage(
-          onNavigate: _onNavigate, 
-          onAddPressed: _onAddPressed
-        ),
+        builder:
+            (context) => ShopsAndServicesPage(
+              onNavigate: _onNavigate,
+              onAddPressed: _onAddPressed,
+            ),
       ),
     );
   }
@@ -45,10 +46,11 @@ class _MainAppState extends State<MainApp> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => ParkingSavePage(
-          onNavigate: _onNavigate,
-          onAddPressed: _onAddPressed,
-        ),
+        builder:
+            (context) => ParkingSavePage(
+              onNavigate: _onNavigate,
+              onAddPressed: _onAddPressed,
+            ),
       ),
     );
   }

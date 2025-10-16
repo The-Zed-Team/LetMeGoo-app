@@ -45,9 +45,9 @@ class CustomBottomNav extends StatelessWidget {
               ),
               _buildNavItem(
                 index: 2,
-                selectedIcon: Icons.bar_chart,
-                unselectedIcon: Icons.bar_chart_outlined,
-                label: 'Reports',
+                selectedIcon: Icons.near_me,
+                unselectedIcon: Icons.near_me_outlined,
+                label: 'Nearby',
                 onTap: onInformPressed,
               ),
               _buildNavItem(

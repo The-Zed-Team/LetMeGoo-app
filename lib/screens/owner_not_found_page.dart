@@ -130,7 +130,7 @@ class OwnerNotFoundPage extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: const BackButton(color: Colors.black),
+        //leading: const BackButton(color: Colors.black),
       ),
       backgroundColor: Colors.white,
       body: SafeArea(

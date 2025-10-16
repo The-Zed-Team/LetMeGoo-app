@@ -5,7 +5,9 @@ import 'package:letmegoo/widgets/shop_card.dart';
 import 'package:geolocator/geolocator.dart';
 
 class ShopsAndServicesPage extends StatefulWidget {
-  const ShopsAndServicesPage({super.key});
+  final Function(int)? onNavigate;
+  final VoidCallback? onAddPressed;
+  const ShopsAndServicesPage({super.key, this.onNavigate, this.onAddPressed});
 
   @override
   State<ShopsAndServicesPage> createState() => _ShopsAndServicesPageState();
