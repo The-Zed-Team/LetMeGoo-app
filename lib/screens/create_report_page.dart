@@ -809,11 +809,9 @@ class _CreateReportPageState extends ConsumerState<CreateReportPage> {
   }
 
   void _handleReportsButtonTap() {
-    // TODO: Navigate to reports/alerts page
-    // You can add navigation logic here
     Navigator.of(
       context,
-    ).pushReplacement(MaterialPageRoute(builder: (_) => HomePage()));
+    ).push(MaterialPageRoute(builder: (_) => HomePage())); // Changed this line
   }
 
   @override
