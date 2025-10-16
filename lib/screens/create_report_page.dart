@@ -114,11 +114,31 @@ class VehicleSearchNotifier extends StateNotifier<AsyncValue<Vehicle?>> {
 enum MessageOption {
   blocking(
     'Blocking Path',
-    'Your vehicle XXXX is blocking my way, please provide assistance to unblock my way. Thank you.',
+    'Your vehicle XXXX is blocking my way. Could you please move it? Thank you for your cooperation.',
   ),
-  parkingIssue(
-    'Parking Issue',
-    'Please come and visit your vehicle, it\'s parking light is on/its key is in it.',
+  improperParking(
+    'Improper Parking',
+    'Your vehicle XXXX appears to be parked improperly. Please check on it to avoid any issues. Thank you.',
+  ),
+  parkedOnMySlot(
+    'Parked in My Slot',
+    'It looks like your vehicle XXXX is parked in my designated slot. Kindly move it at your earliest convenience. Thank you.',
+  ),
+  headlightOn(
+    'Headlight Is On',
+    'Just a friendly heads-up, the headlights of your vehicle XXXX are still on. You might want to check it to save your battery. Thanks!',
+  ),
+  keyInVehicle(
+    'Key in Vehicle',
+    'I noticed the key for your vehicle XXXX has been left in it. Please retrieve it for security. Thank you.',
+  ),
+  vehicleNotLocked(
+    'Vehicle Not Locked',
+    'It appears your vehicle XXXX may be unlocked or a door/window is not properly closed. Please check on it to ensure it is secure. Thank you.',
+  ),
+  vehicleDamaged(
+    'Vehicle Damaged',
+    'I am writing to inform you that your vehicle XXXX has unfortunately sustained some damage. Please come and inspect it as soon as possible.',
   );
 
   const MessageOption(this.displayText, this.messageTemplate);
@@ -1024,6 +1044,13 @@ class _CreateReportPageState extends ConsumerState<CreateReportPage> {
                             SizedBox(height: screenHeight * 0.025),
                             DropdownButtonFormField<MessageOption>(
                               value: selectedMessageOption,
+                              icon: Icon(
+                                Icons.keyboard_arrow_down_rounded,
+                                color: AppColors.textSecondary,
+                              ),
+                              // [REMOVED] isExpanded: true is removed to prevent the full-width issue.
+                              dropdownColor: AppColors.background,
+                              borderRadius: BorderRadius.circular(12),
                               decoration: InputDecoration(
                                 labelText: "Select Message Type",
                                 labelStyle: TextStyle(
@@ -1066,21 +1093,49 @@ class _CreateReportPageState extends ConsumerState<CreateReportPage> {
                                   vertical: screenHeight * 0.02,
                                 ),
                               ),
+                              // [FIX #1] Use selectedItemBuilder to show a simple Text widget when closed
+                              selectedItemBuilder: (BuildContext context) {
+                                return MessageOption.values.map((
+                                  MessageOption option,
+                                ) {
+                                  return Text(
+                                    option.displayText,
+                                    // This style ensures it looks like normal text inside the field
+                                    style: TextStyle(
+                                      fontSize:
+                                          screenWidth *
+                                          (isLargeScreen
+                                              ? 0.016
+                                              : isTablet
+                                              ? 0.025
+                                              : 0.04),
+                                      color: AppColors.textPrimary,
+                                    ),
+                                  );
+                                }).toList();
+                              },
+                              // This builder still provides the nice UI for the open menu
                               items:
                                   MessageOption.values.map((option) {
                                     return DropdownMenuItem<MessageOption>(
                                       value: option,
-                                      child: Text(
-                                        option.displayText,
-                                        style: TextStyle(
-                                          fontSize:
-                                              screenWidth *
-                                              (isLargeScreen
-                                                  ? 0.016
-                                                  : isTablet
-                                                  ? 0.025
-                                                  : 0.04),
-                                          color: AppColors.textPrimary,
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 8.0,
+                                          horizontal: 4.0,
+                                        ),
+                                        child: Text(
+                                          option.displayText,
+                                          style: TextStyle(
+                                            fontSize:
+                                                screenWidth *
+                                                (isLargeScreen
+                                                    ? 0.016
+                                                    : isTablet
+                                                    ? 0.025
+                                                    : 0.04),
+                                            color: AppColors.textPrimary,
+                                          ),
                                         ),
                                       ),
                                     );

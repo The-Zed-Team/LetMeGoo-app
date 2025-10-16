@@ -19,9 +19,9 @@ void main() async {
     );
     print("Firebase initialized successfully");
 
-    // Initialize Crashlytics
-    if (!kDebugMode) {
-      // Only enable Crashlytics in release mode
+    // CHANGED: Added !kIsWeb to ensure Crashlytics only runs on mobile
+    if (!kDebugMode && !kIsWeb) {
+      // Only enable Crashlytics in release mode on mobile
       FlutterError.onError = (errorDetails) {
         FirebaseCrashlytics.instance.recordFlutterFatalError(errorDetails);
       };
@@ -36,15 +36,15 @@ void main() async {
     // Initialize notifications in background - don't await
     NotificationService.initialize().catchError((e) {
       print("Notification initialization error: $e");
-      // Log to Crashlytics
-      if (!kDebugMode) {
+      // Log to Crashlytics if not on web
+      if (!kDebugMode && !kIsWeb) {
         FirebaseCrashlytics.instance.recordError(e, null);
       }
     });
   } catch (e) {
     print("Firebase initialization error: $e");
-    // Log to Crashlytics
-    if (!kDebugMode) {
+    // Log to Crashlytics if not on web
+    if (!kDebugMode && !kIsWeb) {
       FirebaseCrashlytics.instance.recordError(e, null);
     }
   }
@@ -67,14 +67,10 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       navigatorKey: navigatorKey,
-      // Add analytics navigation observer
-      // navigatorObservers: [
-      //   FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance),
-      // ],
       home: const SplashScreen(),
       routes: {
         '/splash': (context) => const SplashScreen(),
-        '/login': (context) => LoginPage(),
+        '/login': (context) => const LoginPage(),
       },
       onUnknownRoute: (settings) {
         return MaterialPageRoute(builder: (context) => const SplashScreen());

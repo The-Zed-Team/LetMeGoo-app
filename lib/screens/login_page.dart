@@ -15,6 +15,8 @@ import 'package:letmegoo/services/device_service.dart';
 import 'package:letmegoo/services/analytics_service.dart';
 import 'package:letmegoo/models/login_method.dart';
 import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart'
+    show kIsWeb; // CHANGED: Added this import
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -193,7 +195,8 @@ class _LoginPageState extends State<LoginPage> {
     final buttonHeight = isCompact ? 48.0 : 54.0;
     final spacing = isCompact ? 12.0 : 16.0;
     final fontSize = isCompact ? 15.0 : 16.0;
-    final showAppleSignIn = Platform.isIOS;
+    // CHANGED: This now checks for web first to prevent crashing
+    final showAppleSignIn = !kIsWeb && Platform.isIOS;
 
     return Center(
       child: SizedBox(
@@ -435,7 +438,6 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  // Show snackbar for user feedback
   void _showSnackBar(String message, {bool isError = false}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -451,7 +453,6 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  // Navigation methods
   void _navigateToEmailRegistration() {
     Navigator.push(
       context,
@@ -459,7 +460,6 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  // 🔥 UPDATED: Create reusable method for post-authentication navigation
   Future<void> _handlePostAuthenticationNavigation(
     User user,
     LoginMethod loginMethod,
@@ -468,18 +468,13 @@ class _LoginPageState extends State<LoginPage> {
       final userData = await AuthService.authenticateUser();
 
       if (userData != null) {
-        // 🔥 NEW: Check status field instead of fullname
         final String? status = userData['status'] as String?;
 
         if (status == 'profile_completed') {
-          // User has completed profile, navigate to main app
           _navigateToMainApp();
         } else if (status == 'registered') {
-          // User is registered but needs to complete profile
           _navigateToUserDetails(loginMethod);
         } else {
-          // Unknown status, navigate to welcome for safety
-
           _navigateToWelcome();
         }
       } else {
@@ -518,7 +513,6 @@ class _LoginPageState extends State<LoginPage> {
       _showSnackBar('Google sign-in successful!', isError: false);
       await _registerDeviceAfterLogin();
 
-      // 🔥 UPDATED: Use new navigation method
       await _handlePostAuthenticationNavigation(user, LoginMethod.google);
     } on FirebaseAuthException catch (e) {
       AnalyticsService.recordError(e, null);
@@ -527,9 +521,11 @@ class _LoginPageState extends State<LoginPage> {
       AnalyticsService.recordError(e, null);
       _showSnackBar('Sign-in failed: ${e.toString()}', isError: true);
     } finally {
-      setState(() {
-        _isGoogleLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isGoogleLoading = false;
+        });
+      }
     }
   }
 
@@ -560,7 +556,6 @@ class _LoginPageState extends State<LoginPage> {
       _showSnackBar('Apple sign-in successful!', isError: false);
       await _registerDeviceAfterLogin();
 
-      // 🔥 UPDATED: Use new navigation method
       await _handlePostAuthenticationNavigation(user, LoginMethod.apple);
     } on FirebaseAuthException catch (e) {
       AnalyticsService.recordError(e, null);
@@ -569,9 +564,11 @@ class _LoginPageState extends State<LoginPage> {
       AnalyticsService.recordError(e, null);
       _showSnackBar('Sign-in failed: ${e.toString()}', isError: true);
     } finally {
-      setState(() {
-        _isAppleLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isAppleLoading = false;
+        });
+      }
     }
   }
 
