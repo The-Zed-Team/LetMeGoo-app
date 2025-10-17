@@ -86,46 +86,24 @@ class _EditvehicledialogState extends State<Editvehicledialog> {
     _brandController = TextEditingController(text: widget.vehicle.brand ?? '');
     _nameController = TextEditingController(text: widget.vehicle.name);
 
-    // Debug prints for initialization
-    print('=== VEHICLE EDIT INITIALIZATION ===');
-    print('Vehicle ID: ${widget.vehicle.id}');
-    print('Vehicle Number: ${widget.vehicle.vehicleNumber}');
-    print('Vehicle Name: ${widget.vehicle.name}');
-    print('Vehicle Brand: ${widget.vehicle.brand}');
-    print('Vehicle Type: ${widget.vehicle.vehicleType}');
-    print('Vehicle Fuel Type: ${widget.vehicle.fuelType}');
-    print('=====================================');
-
     // Initialize fuel type
     _initializeFuelType();
   }
 
   void _initializeFuelType() {
-    print('=== FUEL TYPE INITIALIZATION ===');
-    print('Original fuel type from vehicle: "${widget.vehicle.fuelType}"');
-
     if (widget.vehicle.fuelType.isNotEmpty) {
       // Clean and normalize the fuel type from database
       String cleanFuelType = widget.vehicle.fuelType.trim().toLowerCase();
-      print('Cleaned fuel type: "$cleanFuelType"');
 
       // Handle if fuel type is stored as an object (extract value)
       if (widget.vehicle.fuelType.contains('{') &&
           widget.vehicle.fuelType.contains('}')) {
-        print('🔍 Fuel type appears to be JSON object, extracting...');
-
         // Extract value from object format like "{key: petrol, value: Petrol}"
         RegExp valueRegex = RegExp(r'value["\s]*:["\s]*([^,}"]+)');
         Match? match = valueRegex.firstMatch(widget.vehicle.fuelType);
         if (match != null) {
           cleanFuelType = match.group(1)?.trim().toLowerCase() ?? '';
-          print('🔍 Extracted value from object: "$cleanFuelType"');
         }
-      }
-
-      print('Available fuel types:');
-      for (var fuel in fuelTypes) {
-        print('  - display: "${fuel['display']}", value: "${fuel['value']}"');
       }
 
       // Find matching fuel type in our predefined list
