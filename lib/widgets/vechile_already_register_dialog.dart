@@ -128,17 +128,17 @@ class VehicleAlreadyRegisteredDialog extends StatelessWidget {
               height: 48,
               child: TextButton(
                 onPressed: () => Navigator.of(context).pop(),
+                style: TextButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
                 child: Text(
                   'Close',
                   style: TextStyle(
                     color: AppColors.textSecondary,
                     fontSize: isTablet ? 16 : 14,
                     fontWeight: FontWeight.w500,
-                  ),
-                ),
-                style: TextButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
                   ),
                 ),
               ),
