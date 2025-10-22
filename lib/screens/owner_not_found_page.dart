@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:letmegoo/services/auth_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:letmegoo/constants/app_images.dart';
 import 'package:letmegoo/constants/app_theme.dart';
@@ -84,10 +85,19 @@ class OwnerNotFoundPage extends StatelessWidget {
                   SizedBox(width: isSmallScreen ? 12 : 16),
 
                   // Proceed button
+                  // Proceed button
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () async {
                         Navigator.of(context).pop();
+                        // Fire-and-forget analytics (do not block the call)
+                        AuthService.trackCtaEvent(
+                          eventType: 'Button clicked',
+                          eventContext: '112 clicked',
+                          //relatedEntityId: '112',
+                          relatedEntityType: 'emergency',
+                          eventMetadata: {'source': 'OwnerNotFoundPage'},
+                        );
                         final Uri phoneUri = Uri(scheme: 'tel', path: '112');
                         if (await canLaunchUrl(phoneUri)) {
                           await launchUrl(phoneUri);

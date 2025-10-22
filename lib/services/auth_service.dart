@@ -3,9 +3,11 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:letmegoo/models/report.dart';
+import 'package:letmegoo/models/shop.dart';
 import 'package:letmegoo/models/vehicle.dart';
 import 'package:letmegoo/models/vehicle_type.dart';
 import 'package:letmegoo/models/vehicle_search_result.dart';
@@ -953,6 +955,167 @@ class AuthService {
     }
   }
 
+  static Future<bool> trackCtaEvent({
+    required String eventType,
+    required String eventContext,
+    String? relatedEntityId,
+    String? relatedEntityType,
+    Map<String, dynamic>? eventMetadata,
+  }) async {
+    try {
+      if (!await _hasInternetConnection()) {
+        throw ConnectivityException('No internet connection');
+      }
+
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        throw AuthException('No Firebase user found');
+      }
+
+      // Fetch token result to collect standard Firebase claims for query params
+      final idTokenResult = await user.getIdTokenResult(true);
+      final claims = idTokenResult.claims ?? {};
+
+      final qp = <String, String>{};
+      // Safely add common OIDC/Firebase claim fields if available
+      void put(String key, dynamic value) {
+        if (value == null) return;
+        qp[key] = value.toString();
+      }
+
+      put('iss', claims['iss']);
+      put('aud', claims['aud']);
+      put('auth_time', claims['auth_time']);
+      put('uid', user.uid); // prefer Firebase uid
+      put('sub', claims['sub'] ?? user.uid);
+      put('iat', claims['iat']);
+      put('exp', claims['exp']);
+      put('email', user.email);
+      put('email_verified', claims['email_verified'] ?? user.emailVerified);
+      put('phone_number', user.phoneNumber);
+      put('name', user.displayName);
+      put('picture', user.photoURL);
+
+      // These can be complex objects; stringify as JSON if present
+      if (claims['firebase'] != null) {
+        qp['firebase'] = jsonEncode(claims['firebase']);
+      }
+      if (claims['custom_claims'] != null) {
+        qp['custom_claims'] = jsonEncode(claims['custom_claims']);
+      }
+
+      final uri = Uri.parse(
+        '$baseUrl/analytics/cta/track',
+      ).replace(queryParameters: qp.isEmpty ? null : qp);
+
+      final headers = await _getAuthHeaders(contentType: 'application/json');
+
+      final body = <String, dynamic>{
+        'event_type': eventType,
+        'event_context': eventContext,
+        if (relatedEntityId != null) 'related_entity_id': relatedEntityId,
+        if (relatedEntityType != null) 'related_entity_type': relatedEntityType,
+        if (eventMetadata != null) 'event_metadata': eventMetadata,
+      };
+
+      final response = await _httpClient
+          .post(uri, headers: headers, body: json.encode(body))
+          .timeout(timeoutDuration);
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return true;
+      } else {
+        _handleHttpError(response);
+        return false;
+      }
+    } on TimeoutException {
+      throw ConnectivityException('Request timeout');
+    } on SocketException {
+      throw ConnectivityException('Network error');
+    } on FormatException {
+      throw ApiException('Invalid response format');
+    } catch (e) {
+      if (e is AuthException ||
+          e is ApiException ||
+          e is ConnectivityException) {
+        rethrow;
+      }
+      throw ApiException('Failed to track CTA event: $e');
+    }
+  }
+
+  /// Get list of shops with pagination
+  static Future<ShopListResponse> getShops({
+    int offset = 0,
+    int limit = 50,
+  }) async {
+    try {
+      if (!await _hasInternetConnection()) {
+        throw ConnectivityException('No internet connection');
+      }
+
+      final uri = Uri.parse('$baseUrl/shop/list').replace(
+        queryParameters: {
+          'offset': offset.toString(),
+          'limit': limit.toString(),
+        },
+      );
+
+      final response = await _httpClient
+          .get(uri, headers: {'Accept': 'application/json'})
+          .timeout(timeoutDuration);
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonData = json.decode(response.body);
+        return ShopListResponse.fromJson(jsonData);
+      } else {
+        _handleHttpError(response);
+        throw ApiException('Failed to fetch shops');
+      }
+    } on TimeoutException {
+      throw ConnectivityException('Request timeout');
+    } on SocketException {
+      throw ConnectivityException('Network error');
+    } on FormatException {
+      throw ApiException('Invalid response format');
+    } catch (e) {
+      if (e is ApiException || e is ConnectivityException) {
+        rethrow;
+      }
+      throw ApiException('Failed to fetch shops: $e');
+    }
+  }
+
+  /// Get shops with distance calculation from user's location
+  static Future<List<Shop>> getShopsWithDistance({
+    int offset = 0,
+    int limit = 10,
+    double? userLatitude,
+    double? userLongitude,
+  }) async {
+    try {
+      final shopResponse = await getShops(offset: offset, limit: limit);
+
+      // Calculate distances if user location is provided
+      if (userLatitude != null && userLongitude != null) {
+        for (var shop in shopResponse.items) {
+          shop.distance =
+              Geolocator.distanceBetween(
+                userLatitude,
+                userLongitude,
+                shop.latitude,
+                shop.longitude,
+              ) /
+              1000; // Convert meters to kilometers
+        }
+      }
+
+      return shopResponse.items;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   static Future<Vehicle?> getVehicleByRegistrationNumber(
     String registrationNumber,
   ) async {
@@ -1050,7 +1213,7 @@ class AuthService {
 
       final headers = await _getAuthHeaders();
 
-      final uri = Uri.parse('$baseUrl/vehicle/report/list').replace(
+      final uri = Uri.parse('$baseUrl/vehicle/report/list?limit=30').replace(
         queryParameters: {'is_closed': isClosed.toString(), 'type': type},
       );
 

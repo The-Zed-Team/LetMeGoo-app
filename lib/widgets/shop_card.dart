@@ -41,18 +41,33 @@ class ShopCard extends StatelessWidget {
               topLeft: Radius.circular(12),
               topRight: Radius.circular(12),
             ),
-            child: Image.network(
-              shop.imageUrl,
-              height: 180,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  height: 180,
-                  color: Colors.grey[200],
-                  child: const Icon(Icons.store, size: 50, color: Colors.grey),
-                );
-              },
-            ),
+            child:
+                shop.imageUrl != null
+                    ? Image.network(
+                      shop.imageUrl!,
+                      height: 180,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          height: 180,
+                          color: Colors.grey[200],
+                          child: const Icon(
+                            Icons.store,
+                            size: 50,
+                            color: Colors.grey,
+                          ),
+                        );
+                      },
+                    )
+                    : Container(
+                      height: 180,
+                      color: Colors.grey[200],
+                      child: const Icon(
+                        Icons.store,
+                        size: 50,
+                        color: Colors.grey,
+                      ),
+                    ),
           ),
           Padding(
             padding: const EdgeInsets.all(16.0),

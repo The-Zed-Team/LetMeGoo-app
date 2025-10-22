@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:letmegoo/constants/app_theme.dart';
 import 'package:letmegoo/models/shop.dart';
 import 'package:letmegoo/widgets/shop_card.dart';
+import 'package:letmegoo/services/auth_service.dart';
 import 'package:geolocator/geolocator.dart';
 
 class ShopsAndServicesPage extends StatefulWidget {
@@ -18,74 +19,83 @@ class _ShopsAndServicesPageState extends State<ShopsAndServicesPage> {
   String? _selectedCategory;
   Position? _currentPosition;
 
-  // Dummy data for shops
-  final List<Shop> _shops = [
-    Shop(
-      name: 'Central Perk',
-      description:
-          'A cozy coffee shop in the heart of the city, perfect for a chat with friends.',
-      address: '123 Main St, Anytown, USA',
-      latitude: 34.0522,
-      longitude: -118.2437,
-      phoneNumber: '555-1234',
-      email: 'info@centralperk.com',
-      website: 'https://centralperk.com',
-      category: 'Coffee Shop',
-      operatingHours: 'Mon-Fri: 7am - 7pm',
-      isActive: true,
-      imageUrl: 'https://i.insider.com/5d8b8d9b2e22af1ee8005b87?width=700',
-    ),
-    Shop(
-      name: 'The Good Place',
-      description:
-          'Serving up delicious, ethically sourced food for good people.',
-      address: '456 Oak Ave, Anytown, USA',
-      latitude: 34.0532,
-      longitude: -118.2447,
-      phoneNumber: '555-5678',
-      email: 'hello@thegoodplace.com',
-      website: 'https://thegoodplace.com',
-      category: 'Restaurant',
-      operatingHours: 'Tue-Sun: 11am - 10pm',
-      isActive: true,
-      imageUrl:
-          'https://media-cdn.tripadvisor.com/media/photo-s/1a/00/a3/9b/the-good-place.jpg',
-    ),
-    Shop(
-      name: 'Big Bang Burger',
-      description: 'Challenge yourself with the biggest burgers in town!',
-      address: '789 Pine St, Anytown, USA',
-      latitude: 34.0552,
-      longitude: -118.2457,
-      phoneNumber: '555-9012',
-      email: 'contact@bigbangburger.com',
-      website: 'https://bigbangburger.com',
-      category: 'Restaurant',
-      operatingHours: 'Daily: 10am - 11pm',
-      isActive: true,
-      imageUrl: 'https://i.redd.it/ng93z4jd92j81.jpg',
-    ),
-    Shop(
-      name: 'Gekkoukan High',
-      description: 'A prestigious high school with a mysterious secret.',
-      address: '101 School Ln, Anytown, USA',
-      latitude: 34.1522,
-      longitude: -118.3437,
-      phoneNumber: '555-3456',
-      email: 'admin@gekkoukan.edu',
-      website: 'https://gekkoukan.edu',
-      category: 'School',
-      operatingHours: 'Mon-Fri: 8am - 4pm',
-      isActive: true,
-      imageUrl:
-          'https://static.wikia.nocookie.net/megamitensei/images/3/3b/P3R_Gekkoukan_High_School_foyer.png/revision/latest?cb=20230823155138',
-    ),
-  ];
+  List<Shop> _allShops = [];
+  List<Shop> _filteredShops = [];
+  bool _isLoading = true;
+  bool _isLoadingMore = false;
+  String? _errorMessage;
+
+  // Pagination variables
+  int _currentOffset = 0;
+  int _limit = 20; // Increased from 10
+  bool _hasMoreData = true;
 
   @override
   void initState() {
     super.initState();
-    _getCurrentLocation();
+    _initializeData();
+  }
+
+  Future<void> _initializeData() async {
+    // Get location first, then load shops
+    await _getCurrentLocation();
+    await _loadShops();
+  }
+
+  Future<void> _loadShops({bool loadMore = false}) async {
+    try {
+      setState(() {
+        if (loadMore) {
+          _isLoadingMore = true;
+        } else {
+          _isLoading = true;
+          _errorMessage = null;
+        }
+      });
+
+      final shops = await AuthService.getShopsWithDistance(
+        offset: loadMore ? _currentOffset : 0,
+        limit: _limit,
+        userLatitude: _currentPosition?.latitude,
+        userLongitude: _currentPosition?.longitude,
+      );
+
+      if (mounted) {
+        setState(() {
+          if (loadMore) {
+            _allShops.addAll(shops);
+            _isLoadingMore = false;
+          } else {
+            _allShops = shops;
+            _isLoading = false;
+          }
+
+          // Check if we have more data
+          _hasMoreData = shops.length == _limit;
+          _currentOffset = loadMore ? _currentOffset + _limit : _limit;
+        });
+
+        // Apply filters after loading
+        _applyFilters();
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          if (loadMore) {
+            _isLoadingMore = false;
+          } else {
+            _isLoading = false;
+            _errorMessage = 'Failed to load shops: ${e.toString()}';
+          }
+        });
+      }
+    }
+  }
+
+  Future<void> _loadMoreShops() async {
+    if (!_isLoadingMore && _hasMoreData) {
+      await _loadShops(loadMore: true);
+    }
   }
 
   Future<void> _getCurrentLocation() async {
@@ -94,7 +104,6 @@ class _ShopsAndServicesPageState extends State<ShopsAndServicesPage> {
 
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      // Handle service not enabled
       return;
     }
 
@@ -102,13 +111,11 @@ class _ShopsAndServicesPageState extends State<ShopsAndServicesPage> {
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
-        // Handle permission denied
         return;
       }
     }
 
     if (permission == LocationPermission.deniedForever) {
-      // Handle permission permanently denied
       return;
     }
 
@@ -119,17 +126,17 @@ class _ShopsAndServicesPageState extends State<ShopsAndServicesPage> {
       if (mounted) {
         setState(() {
           _currentPosition = position;
-          _updateShopDistances();
         });
       }
     } catch (e) {
       // Handle location errors
+      print('Location error: $e');
     }
   }
 
   void _updateShopDistances() {
     if (_currentPosition == null) return;
-    for (var shop in _shops) {
+    for (var shop in _allShops) {
       shop.distance =
           Geolocator.distanceBetween(
             _currentPosition!.latitude,
@@ -139,33 +146,46 @@ class _ShopsAndServicesPageState extends State<ShopsAndServicesPage> {
           ) /
           1000; // Convert meters to kilometers
     }
-    if (mounted) {
-      setState(() {});
-    }
+    _applyFilters();
   }
 
-  List<Shop> get _filteredShops {
-    List<Shop> filteredList = _shops.where((shop) => shop.isActive).toList();
+  void _applyFilters() {
+    List<Shop> filteredList = List.from(
+      _allShops.where((shop) => shop.isActive),
+    );
 
+    // Apply distance filter
     if (_selectedDistance != 'All') {
-      final distance = int.parse(_selectedDistance.replaceAll(' km', ''));
+      final distanceLimit = int.parse(_selectedDistance.replaceAll(' km', ''));
       filteredList =
-          filteredList
-              .where((shop) => (shop.distance ?? 0) <= distance)
-              .toList();
+          filteredList.where((shop) {
+            // If distance is not calculated yet, include the shop
+            if (shop.distance == null) return true;
+            return shop.distance! <= distanceLimit;
+          }).toList();
     }
 
-    if (_selectedCategory != null) {
+    // Apply category filter
+    if (_selectedCategory != null && _selectedCategory != 'All') {
       filteredList =
           filteredList
               .where((shop) => shop.category == _selectedCategory)
               .toList();
     }
 
-    // Sort by distance
-    filteredList.sort((a, b) => (a.distance ?? 0).compareTo(b.distance ?? 0));
+    // Sort by distance (shops without distance go to the end)
+    filteredList.sort((a, b) {
+      if (a.distance == null && b.distance == null) return 0;
+      if (a.distance == null) return 1;
+      if (b.distance == null) return -1;
+      return a.distance!.compareTo(b.distance!);
+    });
 
-    return filteredList;
+    if (mounted) {
+      setState(() {
+        _filteredShops = filteredList;
+      });
+    }
   }
 
   @override
@@ -183,22 +203,77 @@ class _ShopsAndServicesPageState extends State<ShopsAndServicesPage> {
           _buildFilters(),
           Expanded(
             child:
-                _currentPosition == null
+                _isLoading
                     ? const Center(
                       child: CircularProgressIndicator(
                         color: AppColors.primary,
+                      ),
+                    )
+                    : _errorMessage != null
+                    ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(_errorMessage!),
+                          const SizedBox(height: 16),
+                          ElevatedButton(
+                            onPressed: () => _loadShops(),
+                            child: const Text('Retry'),
+                          ),
+                        ],
                       ),
                     )
                     : _filteredShops.isEmpty
                     ? const Center(
                       child: Text("No shops found matching your criteria."),
                     )
-                    : ListView.builder(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      itemCount: _filteredShops.length,
-                      itemBuilder: (context, index) {
-                        return ShopCard(shop: _filteredShops[index]);
-                      },
+                    : Column(
+                      children: [
+                        Expanded(
+                          child: ListView.builder(
+                            padding: const EdgeInsets.only(bottom: 16),
+                            itemCount: _filteredShops.length,
+                            itemBuilder: (context, index) {
+                              return ShopCard(shop: _filteredShops[index]);
+                            },
+                          ),
+                        ),
+                        // Load More Button
+                        if (_hasMoreData && !_isLoadingMore)
+                          Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                onPressed: _loadMoreShops,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.primary,
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 12,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                                child: const Text(
+                                  'Load More Shops',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        // Loading indicator for "Load More"
+                        if (_isLoadingMore)
+                          const Padding(
+                            padding: EdgeInsets.all(16.0),
+                            child: CircularProgressIndicator(
+                              color: AppColors.primary,
+                            ),
+                          ),
+                      ],
                     ),
           ),
         ],
@@ -233,6 +308,7 @@ class _ShopsAndServicesPageState extends State<ShopsAndServicesPage> {
           setState(() {
             _selectedDistance = newValue;
           });
+          _applyFilters();
         }
       },
       items:
@@ -250,7 +326,7 @@ class _ShopsAndServicesPageState extends State<ShopsAndServicesPage> {
   Widget _buildCategoryFilter() {
     final categories = [
       'All',
-      ..._shops.map((shop) => shop.category).toSet().toList(),
+      ..._allShops.map((shop) => shop.category).toSet().toList(),
     ];
     return DropdownButtonFormField<String>(
       value: _selectedCategory ?? 'All',
@@ -264,6 +340,7 @@ class _ShopsAndServicesPageState extends State<ShopsAndServicesPage> {
         setState(() {
           _selectedCategory = (newValue == 'All') ? null : newValue;
         });
+        _applyFilters();
       },
       items:
           categories.map<DropdownMenuItem<String>>((String value) {
