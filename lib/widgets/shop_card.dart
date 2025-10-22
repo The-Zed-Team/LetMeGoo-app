@@ -33,98 +33,90 @@ class ShopCard extends StatelessWidget {
       elevation: 4,
       color: AppColors.background,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(12),
-              topRight: Radius.circular(12),
-            ),
-            child:
-                shop.imageUrl != null
-                    ? Image.network(
-                      shop.imageUrl!,
-                      height: 180,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          height: 180,
-                          color: Colors.grey[200],
-                          child: const Icon(
-                            Icons.store,
-                            size: 50,
-                            color: Colors.grey,
-                          ),
-                        );
-                      },
-                    )
-                    : Container(
-                      height: 180,
-                      color: Colors.grey[200],
-                      child: const Icon(
-                        Icons.store,
-                        size: 50,
-                        color: Colors.grey,
-                      ),
-                    ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Shop name and distance
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        shop.name,
-                        style: Theme.of(context).textTheme.headlineSmall
-                            ?.copyWith(fontWeight: FontWeight.bold),
-                      ),
+                Expanded(
+                  child: Text(
+                    shop.name,
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
                     ),
-                    if (shop.distance != null)
-                      Text(
-                        '${shop.distance!.toStringAsFixed(1)} km',
-                        style: Theme.of(
-                          context,
-                        ).textTheme.titleMedium?.copyWith(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                  ],
+                  ),
                 ),
-                const SizedBox(height: 8),
-                _buildInfoRow(
-                  icon: Icons.schedule,
-                  text: shop.operatingHours,
+                if (shop.distance != null)
+                  Text(
+                    '${shop.distance!.toStringAsFixed(1)} km',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 12),
+
+            // Phone number
+            _buildInfoRow(
+              icon: Icons.phone,
+              text: shop.phoneNumber,
+              context: context,
+            ),
+            const SizedBox(height: 8),
+
+            // Address/Location
+            _buildInfoRow(
+              icon: Icons.location_on,
+              text: shop.address,
+              context: context,
+            ),
+            const SizedBox(height: 8),
+
+            // Description
+            if (shop.description.isNotEmpty) ...[
+              _buildInfoRow(
+                icon: Icons.description,
+                text: shop.description,
+                context: context,
+              ),
+              const SizedBox(height: 8),
+            ],
+
+            // Working hours
+            _buildInfoRow(
+              icon: Icons.schedule,
+              text: shop.operatingHours,
+              context: context,
+            ),
+            const SizedBox(height: 16),
+
+            // Action buttons
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildActionButton(
+                  icon: Icons.call_outlined,
+                  label: 'Call',
+                  onPressed: () => _makePhoneCall(shop.phoneNumber),
                   context: context,
                 ),
-                const Divider(height: 24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    _buildActionButton(
-                      icon: Icons.call_outlined,
-                      label: 'Call',
-                      onPressed: () => _makePhoneCall(shop.phoneNumber),
-                      context: context,
-                    ),
-                    _buildActionButton(
-                      icon: Icons.directions_outlined,
-                      label: 'Navigate',
-                      onPressed: () => _openMap(shop.latitude, shop.longitude),
-                      context: context,
-                    ),
-                  ],
+                _buildActionButton(
+                  icon: Icons.directions_outlined,
+                  label: 'Navigate',
+                  onPressed: () => _openMap(shop.latitude, shop.longitude),
+                  context: context,
                 ),
               ],
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

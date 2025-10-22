@@ -134,21 +134,6 @@ class _ShopsAndServicesPageState extends State<ShopsAndServicesPage> {
     }
   }
 
-  void _updateShopDistances() {
-    if (_currentPosition == null) return;
-    for (var shop in _allShops) {
-      shop.distance =
-          Geolocator.distanceBetween(
-            _currentPosition!.latitude,
-            _currentPosition!.longitude,
-            shop.latitude,
-            shop.longitude,
-          ) /
-          1000; // Convert meters to kilometers
-    }
-    _applyFilters();
-  }
-
   void _applyFilters() {
     List<Shop> filteredList = List.from(
       _allShops.where((shop) => shop.isActive),
