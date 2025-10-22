@@ -9,6 +9,7 @@ import 'package:letmegoo/screens/privacy_preferences_page.dart';
 import 'package:letmegoo/providers/user_provider.dart';
 import 'package:letmegoo/providers/app_providers.dart';
 import 'package:letmegoo/providers/app_state_provider.dart';
+import 'package:letmegoo/screens/shops_and_services_page.dart';
 import 'package:letmegoo/screens/terms_and_condition_page.dart';
 import 'package:letmegoo/services/auth_service.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -281,6 +282,32 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                                       MaterialPageRoute(
                                         builder:
                                             (context) => const MyVehiclesPage(),
+                                      ),
+                                    );
+                                  },
+                                ),
+                                CustomDivider(screenWidth: screenWidth),
+
+                                Profileoption(
+                                  icon: Icons.near_me,
+                                  title: "Nearby",
+                                  trailing: Icon(
+                                    Icons.chevron_right,
+                                    color: AppColors.textSecondary,
+                                    size:
+                                        screenWidth *
+                                        (isLargeScreen
+                                            ? 0.025
+                                            : isTablet
+                                            ? 0.035
+                                            : 0.06),
+                                  ),
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder:
+                                            (context) => ShopsAndServicesPage(),
                                       ),
                                     );
                                   },

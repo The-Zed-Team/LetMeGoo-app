@@ -175,183 +175,180 @@ class _HomePageState extends ConsumerState<HomePage>
       body: MediaQuery.removePadding(
         context: context,
         removeBottom: true,
-        child: SafeArea(
-          child: Column(
-            children: [
-              Consumer(
+        child: Column(
+          children: [
+            Consumer(
+              builder: (context, ref, child) {
+                final reportsState = ref.watch(reportsProvider);
+                if (reportsState.error != null &&
+                    reportsState.error!.isNotEmpty) {
+                  return Container(
+                    width: double.infinity,
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.red[50],
+                      border: Border.all(color: Colors.red[200]!),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          color: Colors.red[700],
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            reportsState.error!,
+                            style: TextStyle(
+                              color: Colors.red[700],
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: _retryLoadingReports,
+                          child: Text(
+                            'Retry',
+                            style: TextStyle(
+                              color: Colors.red[700],
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+            ),
+            Expanded(
+              child: Consumer(
                 builder: (context, ref, child) {
                   final reportsState = ref.watch(reportsProvider);
-                  if (reportsState.error != null &&
-                      reportsState.error!.isNotEmpty) {
-                    return Container(
-                      width: double.infinity,
-                      margin: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.red[50],
-                        border: Border.all(color: Colors.red[200]!),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.error_outline,
-                            color: Colors.red[700],
-                            size: 20,
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              reportsState.error!,
-                              style: TextStyle(
-                                color: Colors.red[700],
-                                fontSize: 14,
-                              ),
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: _retryLoadingReports,
-                            child: Text(
-                              'Retry',
-                              style: TextStyle(
-                                color: Colors.red[700],
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+
+                  print('🎨 Building UI with state:');
+                  print('  - Loading: ${reportsState.isLoading}');
+                  print('  - Has no reports: ${reportsState.hasNoReports}');
+                  print('  - Error: ${reportsState.error}');
+
+                  if (reportsState.isLoading) {
+                    print('🔄 Showing loading widget');
+                    return _LoadingWidget(screenHeight: screenHeight);
+                  }
+
+                  if (reportsState.error != null && reportsState.hasNoReports) {
+                    print('❌ Showing error widget');
+                    return _ErrorWidget(
+                      screenHeight: screenHeight,
+                      errorMessage: reportsState.error!,
+                      onRetry: _retryLoadingReports,
                     );
                   }
-                  return const SizedBox.shrink();
-                },
-              ),
-              Expanded(
-                child: Consumer(
-                  builder: (context, ref, child) {
-                    final reportsState = ref.watch(reportsProvider);
 
-                    print('🎨 Building UI with state:');
-                    print('  - Loading: ${reportsState.isLoading}');
-                    print('  - Has no reports: ${reportsState.hasNoReports}');
-                    print('  - Error: ${reportsState.error}');
-
-                    if (reportsState.isLoading) {
-                      print('🔄 Showing loading widget');
-                      return _LoadingWidget(screenHeight: screenHeight);
-                    }
-
-                    if (reportsState.error != null &&
-                        reportsState.hasNoReports) {
-                      print('❌ Showing error widget');
-                      return _ErrorWidget(
-                        screenHeight: screenHeight,
-                        errorMessage: reportsState.error!,
-                        onRetry: _retryLoadingReports,
-                      );
-                    }
-
-                    if (reportsState.hasNoReports) {
-                      print('🔭 Showing empty widget');
-                      return _EmptyWidget(
-                        screenHeight: screenHeight,
-                        screenWidth: screenWidth,
-                        onRefresh: _onRefresh,
-                      );
-                    }
-
-                    print('📊 Showing reports content');
-                    late List<Map<String, dynamic>> liveByUserFormatted;
-                    late List<Map<String, dynamic>> liveAgainstUserFormatted;
-                    late List<Map<String, dynamic>> solvedByUserFormatted;
-                    late List<Map<String, dynamic>> solvedAgainstUserFormatted;
-
-                    try {
-                      liveByUserFormatted = ref.watch(
-                        liveReportsByUserFormattedProvider,
-                      );
-                      print(
-                        '  - Live by user formatted: ${liveByUserFormatted.length}',
-                      );
-                    } catch (e) {
-                      print('  - Error in liveByUserFormatted: $e');
-                      liveByUserFormatted = [];
-                    }
-
-                    try {
-                      liveAgainstUserFormatted = ref.watch(
-                        liveReportsAgainstUserFormattedProvider,
-                      );
-                      print(
-                        '  - Live against user formatted: ${liveAgainstUserFormatted.length}',
-                      );
-                    } catch (e) {
-                      print('  - Error in liveAgainstUserFormatted: $e');
-                      liveAgainstUserFormatted = [];
-                    }
-
-                    try {
-                      solvedByUserFormatted = ref.watch(
-                        solvedReportsByUserFormattedProvider,
-                      );
-                      print(
-                        '  - Solved by user formatted: ${solvedByUserFormatted.length}',
-                      );
-                    } catch (e) {
-                      print('  - Error in solvedByUserFormatted: $e');
-                      solvedByUserFormatted = [];
-                    }
-
-                    try {
-                      solvedAgainstUserFormatted = ref.watch(
-                        solvedReportsAgainstUserFormattedProvider,
-                      );
-                      print(
-                        '  - Solved against user formatted: ${solvedAgainstUserFormatted.length}',
-                      );
-                    } catch (e) {
-                      print('  - Error in solvedAgainstUserFormatted: $e');
-                      solvedAgainstUserFormatted = [];
-                    }
-
-                    return RefreshIndicator(
+                  if (reportsState.hasNoReports) {
+                    print('🔭 Showing empty widget');
+                    return _EmptyWidget(
+                      screenHeight: screenHeight,
+                      screenWidth: screenWidth,
                       onRefresh: _onRefresh,
-                      color: const Color(0xFF31C5F4),
-                      backgroundColor: Colors.white,
-                      strokeWidth: 2.0,
-                      child: SingleChildScrollView(
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        padding: EdgeInsets.symmetric(
-                          horizontal: screenWidth * 0.02,
+                    );
+                  }
+
+                  print('📊 Showing reports content');
+                  late List<Map<String, dynamic>> liveByUserFormatted;
+                  late List<Map<String, dynamic>> liveAgainstUserFormatted;
+                  late List<Map<String, dynamic>> solvedByUserFormatted;
+                  late List<Map<String, dynamic>> solvedAgainstUserFormatted;
+
+                  try {
+                    liveByUserFormatted = ref.watch(
+                      liveReportsByUserFormattedProvider,
+                    );
+                    print(
+                      '  - Live by user formatted: ${liveByUserFormatted.length}',
+                    );
+                  } catch (e) {
+                    print('  - Error in liveByUserFormatted: $e');
+                    liveByUserFormatted = [];
+                  }
+
+                  try {
+                    liveAgainstUserFormatted = ref.watch(
+                      liveReportsAgainstUserFormattedProvider,
+                    );
+                    print(
+                      '  - Live against user formatted: ${liveAgainstUserFormatted.length}',
+                    );
+                  } catch (e) {
+                    print('  - Error in liveAgainstUserFormatted: $e');
+                    liveAgainstUserFormatted = [];
+                  }
+
+                  try {
+                    solvedByUserFormatted = ref.watch(
+                      solvedReportsByUserFormattedProvider,
+                    );
+                    print(
+                      '  - Solved by user formatted: ${solvedByUserFormatted.length}',
+                    );
+                  } catch (e) {
+                    print('  - Error in solvedByUserFormatted: $e');
+                    solvedByUserFormatted = [];
+                  }
+
+                  try {
+                    solvedAgainstUserFormatted = ref.watch(
+                      solvedReportsAgainstUserFormattedProvider,
+                    );
+                    print(
+                      '  - Solved against user formatted: ${solvedAgainstUserFormatted.length}',
+                    );
+                  } catch (e) {
+                    print('  - Error in solvedAgainstUserFormatted: $e');
+                    solvedAgainstUserFormatted = [];
+                  }
+
+                  return RefreshIndicator(
+                    onRefresh: _onRefresh,
+                    color: const Color(0xFF31C5F4),
+                    backgroundColor: Colors.white,
+                    strokeWidth: 2.0,
+                    child: SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: screenWidth * 0.02,
+                      ),
+                      child: Container(
+                        constraints: BoxConstraints(
+                          maxWidth: isLargeScreen ? 900 : double.infinity,
+                          minHeight: screenHeight * 0.7,
                         ),
-                        child: Container(
-                          constraints: BoxConstraints(
-                            maxWidth: isLargeScreen ? 900 : double.infinity,
-                            minHeight: screenHeight * 0.7,
-                          ),
-                          child: _ReportsContent(
-                            screenWidth: screenWidth,
-                            screenHeight: screenHeight,
-                            isTablet: isTablet,
-                            isLargeScreen: isLargeScreen,
-                            liveByUserFormatted: liveByUserFormatted,
-                            liveAgainstUserFormatted: liveAgainstUserFormatted,
-                            solvedByUserFormatted: solvedByUserFormatted,
-                            solvedAgainstUserFormatted:
-                                solvedAgainstUserFormatted,
-                            isRefreshing: _isRefreshing,
-                          ),
+                        child: _ReportsContent(
+                          screenWidth: screenWidth,
+                          screenHeight: screenHeight,
+                          isTablet: isTablet,
+                          isLargeScreen: isLargeScreen,
+                          liveByUserFormatted: liveByUserFormatted,
+                          liveAgainstUserFormatted: liveAgainstUserFormatted,
+                          solvedByUserFormatted: solvedByUserFormatted,
+                          solvedAgainstUserFormatted:
+                              solvedAgainstUserFormatted,
+                          isRefreshing: _isRefreshing,
                         ),
                       ),
-                    );
-                  },
-                ),
+                    ),
+                  );
+                },
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
