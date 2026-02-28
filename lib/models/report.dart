@@ -1,3 +1,5 @@
+import 'package:letmegoo/core/utils/logger.dart';
+
 class Report {
   final String id;
   final int reportNumber;
@@ -175,16 +177,16 @@ class Report {
         'reportId': id, // This is the report ID needed for flagging
       };
 
-      print('Converted report to widget format:');
-      print('  - ID: $id');
-      print('  - Status: ${widgetData['status']}');
-      print('  - Reporter: ${widgetData['reporter']}');
-      print('  - Has images: ${widgetData['hasImages']}');
-      print('  - Report ID: ${widgetData['reportId']}');
+      AppLogger.debug('Converted report to widget format:');
+      AppLogger.debug('  - ID: $id');
+      AppLogger.debug('  - Status: ${widgetData['status']}');
+      AppLogger.debug('  - Reporter: ${widgetData['reporter']}');
+      AppLogger.debug('  - Has images: ${widgetData['hasImages']}');
+      AppLogger.debug('  - Report ID: ${widgetData['reportId']}');
 
       return widgetData;
     } catch (e) {
-      print('Error converting report to widget format: $e');
+      AppLogger.debug('Error converting report to widget format: $e');
       // Return basic format with error handling
       return {
         'timeDate': 'Unknown Time',
@@ -248,8 +250,8 @@ class ReportedVehicle {
         owner: json['owner'] != null ? Owner.fromJson(json['owner']) : null,
       );
     } catch (e) {
-      print('❌ Error parsing ReportedVehicle: $e');
-      print('📄 Vehicle JSON: $json');
+      AppLogger.debug('❌ Error parsing ReportedVehicle: $e');
+      AppLogger.debug('📄 Vehicle JSON: $json');
       rethrow;
     }
   }
@@ -291,8 +293,8 @@ class Owner {
         companyName: json['company_name']?.toString(),
       );
     } catch (e) {
-      print('❌ Error parsing Owner: $e');
-      print('📄 Owner JSON: $json');
+      AppLogger.debug('❌ Error parsing Owner: $e');
+      AppLogger.debug('📄 Owner JSON: $json');
       rethrow;
     }
   }
@@ -334,8 +336,8 @@ class Reporter {
         companyName: json['company_name']?.toString(),
       );
     } catch (e) {
-      print('❌ Error parsing Reporter: $e');
-      print('📄 Reporter JSON: $json');
+      AppLogger.debug('❌ Error parsing Reporter: $e');
+      AppLogger.debug('📄 Reporter JSON: $json');
       rethrow;
     }
   }
@@ -368,8 +370,8 @@ class ReportImage {
         image: json['image'] as Map<String, dynamic>? ?? {},
       );
     } catch (e) {
-      print('❌ Error parsing ReportImage: $e');
-      print('📄 ReportImage JSON: $json');
+      AppLogger.debug('❌ Error parsing ReportImage: $e');
+      AppLogger.debug('📄 ReportImage JSON: $json');
       rethrow;
     }
   }
@@ -404,8 +406,8 @@ class StatusLog {
         timestamp: DateTime.tryParse(json['timestamp'] ?? '') ?? DateTime.now(),
       );
     } catch (e) {
-      print('❌ Error parsing StatusLog: $e');
-      print('📄 StatusLog JSON: $json');
+      AppLogger.debug('❌ Error parsing StatusLog: $e');
+      AppLogger.debug('📄 StatusLog JSON: $json');
       rethrow;
     }
   }

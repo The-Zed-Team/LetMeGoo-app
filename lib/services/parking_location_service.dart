@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:letmegoo/models/parking_location_model.dart';
+import 'package:letmegoo/core/utils/logger.dart';
 
 class ParkingLocationService {
   static const String baseUrl = 'https://api.letmegoo.com/api';
@@ -66,13 +67,11 @@ class ParkingLocationService {
         }
       }
 
-      print(
-        '🚗 Creating parking location for vehicle: ${request.vehicleNumber}',
-      );
-      print('📍 Location: ${request.latitude}, ${request.longitude}');
-      print('👁️ Visibility: ${request.visibility}');
+      AppLogger.debug('🚗 Creating parking location for vehicle: ${request.vehicleNumber}',);
+      AppLogger.debug('📍 Location: ${request.latitude}, ${request.longitude}');
+      AppLogger.debug('👁️ Visibility: ${request.visibility}');
       if (request.notes != null) {
-        print('📝 Notes: ${request.notes}');
+        AppLogger.debug('📝 Notes: ${request.notes}');
       }
 
       final streamedResponse = await multipartRequest.send().timeout(
@@ -80,8 +79,8 @@ class ParkingLocationService {
       );
       final response = await http.Response.fromStream(streamedResponse);
 
-      print('📤 Response status: ${response.statusCode}');
-      print('📥 Response body: ${response.body}');
+      AppLogger.debug('📤 Response status: ${response.statusCode}');
+      AppLogger.debug('📥 Response body: ${response.body}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final Map<String, dynamic> responseData = json.decode(response.body);
@@ -96,7 +95,7 @@ class ParkingLocationService {
     } on SocketException {
       throw Exception('Network error. Please check your connection.');
     } catch (e) {
-      print('❌ Error creating parking location: $e');
+      AppLogger.debug('❌ Error creating parking location: $e');
       rethrow;
     }
   }
@@ -116,14 +115,14 @@ class ParkingLocationService {
         },
       );
 
-      print('🔍 Fetching parking locations...');
-      print('📄 Limit: $limit, Offset: $offset');
+      AppLogger.debug('🔍 Fetching parking locations...');
+      AppLogger.debug('📄 Limit: $limit, Offset: $offset');
 
       final response = await _httpClient
           .get(uri, headers: headers)
           .timeout(timeoutDuration);
 
-      print('📤 Response status: ${response.statusCode}');
+      AppLogger.debug('📤 Response status: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseData = json.decode(response.body);
@@ -131,8 +130,8 @@ class ParkingLocationService {
           responseData,
         );
 
-        print('✅ Fetched ${locationResponse.items.length} parking locations');
-        print('📊 Has more: ${locationResponse.hasMore}');
+        AppLogger.debug('✅ Fetched ${locationResponse.items.length} parking locations');
+        AppLogger.debug('📊 Has more: ${locationResponse.hasMore}');
 
         return locationResponse;
       } else {
@@ -145,7 +144,7 @@ class ParkingLocationService {
     } on SocketException {
       throw Exception('Network error. Please check your connection.');
     } catch (e) {
-      print('❌ Error fetching parking locations: $e');
+      AppLogger.debug('❌ Error fetching parking locations: $e');
       rethrow;
     }
   }
@@ -157,19 +156,19 @@ class ParkingLocationService {
 
       final uri = Uri.parse('$baseUrl/vehicle/location/delete/$locationId');
 
-      print('🗑️ Deleting parking location: $locationId');
+      AppLogger.debug('🗑️ Deleting parking location: $locationId');
 
       final response = await _httpClient
           .delete(uri, headers: headers)
           .timeout(timeoutDuration);
 
-      print('📤 Delete response status: ${response.statusCode}');
+      AppLogger.debug('📤 Delete response status: ${response.statusCode}');
 
       if (response.statusCode == 200 || response.statusCode == 204) {
-        print('✅ Parking location deleted successfully');
+        AppLogger.debug('✅ Parking location deleted successfully');
         return true;
       } else {
-        print('❌ Failed to delete: ${response.statusCode} - ${response.body}');
+        AppLogger.debug('❌ Failed to delete: ${response.statusCode} - ${response.body}');
         return false;
       }
     } on TimeoutException {
@@ -177,7 +176,7 @@ class ParkingLocationService {
     } on SocketException {
       throw Exception('Network error. Please check your connection.');
     } catch (e) {
-      print('❌ Error deleting parking location: $e');
+      AppLogger.debug('❌ Error deleting parking location: $e');
       return false;
     }
   }
@@ -221,14 +220,14 @@ class ParkingLocationService {
         }
       }
 
-      print('📝 Updating parking location: $locationId');
+      AppLogger.debug('📝 Updating parking location: $locationId');
 
       final streamedResponse = await multipartRequest.send().timeout(
         timeoutDuration,
       );
       final response = await http.Response.fromStream(streamedResponse);
 
-      print('📤 Update response status: ${response.statusCode}');
+      AppLogger.debug('📤 Update response status: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseData = json.decode(response.body);
@@ -243,7 +242,7 @@ class ParkingLocationService {
     } on SocketException {
       throw Exception('Network error. Please check your connection.');
     } catch (e) {
-      print('❌ Error updating parking location: $e');
+      AppLogger.debug('❌ Error updating parking location: $e');
       rethrow;
     }
   }

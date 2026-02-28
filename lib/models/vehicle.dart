@@ -1,4 +1,5 @@
 import 'package:letmegoo/models/vehicle_search_result.dart';
+import 'package:letmegoo/core/utils/logger.dart';
 
 enum PrivacyPreference { public, private, anonymous }
 
@@ -117,8 +118,8 @@ class Vehicle {
                 : null,
       );
     } catch (e) {
-      print('Error parsing Vehicle from JSON: $e');
-      print('JSON data: $json');
+      AppLogger.debug('Error parsing Vehicle from JSON: $e');
+      AppLogger.debug('JSON data: $json');
       rethrow;
     }
   }

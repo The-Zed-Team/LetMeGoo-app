@@ -2,6 +2,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:letmegoo/models/parking_location_model.dart';
 import 'package:letmegoo/services/parking_location_service.dart';
+import 'package:letmegoo/core/utils/logger.dart';
 
 // Parking location state
 class ParkingLocationState {
@@ -87,7 +88,7 @@ class ParkingLocationNotifier extends StateNotifier<ParkingLocationState> {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      print('🔍 Loading parking locations...');
+      AppLogger.debug('🔍 Loading parking locations...');
       final response = await ParkingLocationService.getParkingLocations(
         limit: 20,
         offset: 0,
@@ -102,7 +103,7 @@ class ParkingLocationNotifier extends StateNotifier<ParkingLocationState> {
           hasReachedEnd: !response.hasMore,
           currentOffset: response.items.length,
         );
-        print('✅ Loaded ${response.items.length} parking locations');
+        AppLogger.debug('✅ Loaded ${response.items.length} parking locations');
       }
     } catch (e) {
       if (mounted) {
@@ -110,7 +111,7 @@ class ParkingLocationNotifier extends StateNotifier<ParkingLocationState> {
           isLoading: false,
           error: e.toString().replaceAll('Exception: ', ''),
         );
-        print('❌ Error loading parking locations: $e');
+        AppLogger.debug('❌ Error loading parking locations: $e');
       }
       rethrow;
     }
@@ -126,8 +127,7 @@ class ParkingLocationNotifier extends StateNotifier<ParkingLocationState> {
     state = state.copyWith(isLoading: true);
 
     try {
-      print(
-        '📄 Loading more parking locations (offset: ${state.currentOffset})...',
+      AppLogger.debug('📄 Loading more parking locations (offset: ${state.currentOffset})...',
       );
       final response = await ParkingLocationService.getParkingLocations(
         limit: 20,
@@ -143,7 +143,7 @@ class ParkingLocationNotifier extends StateNotifier<ParkingLocationState> {
           hasReachedEnd: !response.hasMore,
           currentOffset: updatedLocations.length,
         );
-        print('✅ Loaded ${response.items.length} more parking locations');
+        AppLogger.debug('✅ Loaded ${response.items.length} more parking locations');
       }
     } catch (e) {
       if (mounted) {
@@ -151,14 +151,14 @@ class ParkingLocationNotifier extends StateNotifier<ParkingLocationState> {
           isLoading: false,
           error: e.toString().replaceAll('Exception: ', ''),
         );
-        print('❌ Error loading more parking locations: $e');
+        AppLogger.debug('❌ Error loading more parking locations: $e');
       }
     }
   }
 
   Future<bool> createLocation(ParkingLocationRequest request) async {
     try {
-      print('🚗 Creating new parking location...');
+      AppLogger.debug('🚗 Creating new parking location...');
       final newLocation = await ParkingLocationService.createParkingLocation(
         request,
       );
@@ -167,7 +167,7 @@ class ParkingLocationNotifier extends StateNotifier<ParkingLocationState> {
         // Add the new location to the beginning of the list
         final updatedLocations = [newLocation, ...state.locations];
         state = state.copyWith(locations: updatedLocations, error: null);
-        print('✅ Parking location created successfully');
+        AppLogger.debug('✅ Parking location created successfully');
       }
       return true;
     } catch (e) {
@@ -176,14 +176,14 @@ class ParkingLocationNotifier extends StateNotifier<ParkingLocationState> {
           error: e.toString().replaceAll('Exception: ', ''),
         );
       }
-      print('❌ Error creating parking location: $e');
+      AppLogger.debug('❌ Error creating parking location: $e');
       return false;
     }
   }
 
   Future<bool> deleteLocation(String locationId) async {
     try {
-      print('🗑️ Deleting parking location: $locationId');
+      AppLogger.debug('🗑️ Deleting parking location: $locationId');
       final success = await ParkingLocationService.deleteParkingLocation(
         locationId,
       );
@@ -195,7 +195,7 @@ class ParkingLocationNotifier extends StateNotifier<ParkingLocationState> {
                 .where((location) => location.id != locationId)
                 .toList();
         state = state.copyWith(locations: updatedLocations, error: null);
-        print('✅ Parking location deleted successfully');
+        AppLogger.debug('✅ Parking location deleted successfully');
       }
       return success;
     } catch (e) {
@@ -204,7 +204,7 @@ class ParkingLocationNotifier extends StateNotifier<ParkingLocationState> {
           error: e.toString().replaceAll('Exception: ', ''),
         );
       }
-      print('❌ Error deleting parking location: $e');
+      AppLogger.debug('❌ Error deleting parking location: $e');
       return false;
     }
   }

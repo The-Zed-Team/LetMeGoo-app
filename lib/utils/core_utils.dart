@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:letmegoo/widgets/main_app.dart';
+import 'package:letmegoo/features/auth/presentation/widgets/main_app.dart';
 
 class CoreUtil {
   static void goToHomePage(BuildContext context) {

@@ -3,10 +3,10 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:letmegoo/core/services/notification_service.dart';
+import 'package:letmegoo/features/auth/presentation/screens/login_page.dart';
+import 'package:letmegoo/features/auth/presentation/screens/splash_screen.dart';
 
-import 'package:letmegoo/screens/splash_screen.dart';
-import 'package:letmegoo/screens/login_page.dart';
-import 'package:letmegoo/services/notification_service.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -17,7 +17,6 @@ void main() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    print("Firebase initialized successfully");
 
     // CHANGED: Added !kIsWeb to ensure Crashlytics only runs on mobile
     if (!kDebugMode && !kIsWeb) {
@@ -35,14 +34,12 @@ void main() async {
 
     // Initialize notifications in background - don't await
     NotificationService.initialize().catchError((e) {
-      print("Notification initialization error: $e");
       // Log to Crashlytics if not on web
       if (!kDebugMode && !kIsWeb) {
         FirebaseCrashlytics.instance.recordError(e, null);
       }
     });
   } catch (e) {
-    print("Firebase initialization error: $e");
     // Log to Crashlytics if not on web
     if (!kDebugMode && !kIsWeb) {
       FirebaseCrashlytics.instance.recordError(e, null);

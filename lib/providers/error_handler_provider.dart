@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:letmegoo/providers/app_providers.dart';
+import 'package:letmegoo/core/utils/logger.dart';
 
 // Error handling service
 class ErrorHandler {
@@ -13,7 +14,7 @@ class ErrorHandler {
     );
     
     // Log error for debugging
-    print('App Error: $error');
+    AppLogger.debug('App Error: $error');
     
     // You can add analytics or crash reporting here
     // FirebaseCrashlytics.instance.recordError(error, stackTrace);

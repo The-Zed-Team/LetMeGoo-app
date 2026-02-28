@@ -12,8 +12,8 @@ import 'package:letmegoo/models/vehicle.dart';
 import 'package:letmegoo/models/vehicle_type.dart';
 import 'package:letmegoo/models/vehicle_search_result.dart';
 import 'package:letmegoo/models/report_request.dart';
-import 'package:letmegoo/services/device_service.dart';
-import 'package:letmegoo/services/google_auth_service.dart';
+import 'package:letmegoo/core/services/device_service.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http_parser/http_parser.dart';
 // Add these exception classes at the top of your auth_service.dart file
 // (after imports but before the AuthService class)
@@ -269,7 +269,7 @@ class AuthService {
         // Account deleted successfully
         // Sign out from Firebase as well
         await FirebaseAuth.instance.signOut();
-        await GoogleAuthService.signOut();
+        await GoogleSignIn().signOut();
         return true;
       } else {
         _handleHttpError(response);
@@ -1413,7 +1413,7 @@ class AuthService {
       await DeviceService.unregisterDevice();
 
       // Step 3: Sign out from Firebase and Google
-      await GoogleAuthService.signOut();
+      await GoogleSignIn().signOut();
 
       // Close loading dialog
       if (context.mounted) {
@@ -1437,7 +1437,7 @@ class AuthService {
 
       // Even if API call fails, still sign out locally
       try {
-        await GoogleAuthService.signOut();
+        await GoogleSignIn().signOut();
 
         if (context.mounted) {
           Navigator.of(
@@ -1555,7 +1555,7 @@ class AuthService {
       await DeviceService.unregisterDevice();
 
       // Sign out locally
-      await GoogleAuthService.signOut();
+      await GoogleSignIn().signOut();
 
       return true;
     } catch (e) {
@@ -1563,7 +1563,7 @@ class AuthService {
 
       // Try local signout even if API fails
       try {
-        await GoogleAuthService.signOut();
+        await GoogleSignIn().signOut();
         return true; // Consider it successful if local signout works
       } catch (localError) {
         print('Local signout also failed: $localError');
